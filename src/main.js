@@ -1,4 +1,6 @@
-import { createAudioPlayer } from './src/audio.js';
+import './styles.css';
+
+import { createAudioPlayer } from './audio.js';
 import {
     COLORS,
     DEFAULT_ITEMS,
@@ -6,12 +8,12 @@ import {
     MIN_FULL_SPINS,
     SPIN_DURATION,
     TEXT
-} from './src/constants.js';
-import { getElements } from './src/dom.js';
-import { formatItems, parseItems } from './src/items.js';
-import { createSpinner } from './src/spin.js';
-import { createState } from './src/state.js';
-import { createWheelRenderer } from './src/wheel.js';
+} from './constants.js';
+import { getElements } from './dom.js';
+import { formatItems, parseItems } from './items.js';
+import { createSpinner } from './spin.js';
+import { createState } from './state.js';
+import { createWheelRenderer } from './wheel.js';
 
 const elements = getElements();
 const state = createState();
