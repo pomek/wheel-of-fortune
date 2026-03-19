@@ -1,3 +1,9 @@
 minimumReleaseAge: 4320
+minimumReleaseAgeExclude:
+  - vite
+  - rolldown
+  - '@rolldown/*'
+  - '@emnapi/*'
+  - '@napi-rs/*'
 shellEmulator: true
 preferFrozenLockfile: true
