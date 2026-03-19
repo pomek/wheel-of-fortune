@@ -67,9 +67,17 @@ export function createWheelRenderer( { canvas, ctx, colors, emptyText } ) {
 		return list[ getPointerIndex( list, finalRotation ) ];
 	}
 
+	function getRotationForIndex( list, index ) {
+		const arc = ( Math.PI * 2 ) / list.length;
+		const normalized = index * arc + arc / 2;
+
+		return ( ( Math.PI * 1.5 - normalized ) % ( Math.PI * 2 ) + Math.PI * 2 ) % ( Math.PI * 2 );
+	}
+
 	return {
 		draw,
 		getPointerIndex,
-		getWinner
+		getWinner,
+		getRotationForIndex
 	};
 }

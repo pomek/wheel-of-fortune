@@ -11,6 +11,7 @@ import {
 } from './constants.js';
 import { getElements } from './dom.js';
 import { formatItems, parseItems } from './items.js';
+import { clearPersistedState, loadPersistedState, savePersistedState } from './persisted-state.js';
 import { createSpinner } from './spin.js';
 import { createState } from './state.js';
 import { getItemsFromHash, syncItemsInUrl } from './url-state.js';
@@ -38,9 +39,28 @@ function syncUrlState() {
 	syncItemsInUrl( getItems(), { defaultItems: DEFAULT_ITEMS } );
 }
 
-function updateWheel() {
+function restorePersistedState() {
+	const persistedState = loadPersistedState();
+
+	state.rotation = persistedState.rotation;
+	state.lastWinnerIndex = Number.isInteger( persistedState.lastWinnerIndex ) &&
+		persistedState.lastWinnerIndex >= 0 &&
+		persistedState.lastWinnerIndex < state.items.length ?
+		persistedState.lastWinnerIndex :
+		null;
+}
+
+function updateWheel( { restoreState = true } = {} ) {
 	state.items = getItems();
 	syncItemsInUrl( state.items, { defaultItems: DEFAULT_ITEMS } );
+
+	if ( restoreState ) {
+		restorePersistedState();
+	} else {
+		state.rotation = 0;
+		state.lastWinnerIndex = null;
+	}
+
 	setResult( '' );
 	state.lastPointerIndex = state.items.length ?
 		renderer.getPointerIndex( state.items, state.rotation ) :
@@ -49,10 +69,11 @@ function updateWheel() {
 }
 
 function resetWheel() {
-	state.rotation = 0;
 	elements.textarea.value = formatItems( DEFAULT_ITEMS );
+	syncUrlState();
+	clearPersistedState();
 	setResult( '' );
-	updateWheel();
+	updateWheel( { restoreState: false } );
 }
 
 const spinner = createSpinner( {
@@ -66,11 +87,18 @@ const spinner = createSpinner( {
 	minFullSpins: MIN_FULL_SPINS,
 	maxFullSpins: MAX_FULL_SPINS,
 	minItemsMessage: TEXT.minItems,
-	selectedPrefix: TEXT.selectedPrefix
+	selectedPrefix: TEXT.selectedPrefix,
+	persistState: persistedState => savePersistedState( persistedState )
 } );
 
 function spinWheel() {
-	syncUrlState();
+	state.items = getItems();
+	syncItemsInUrl( state.items, { defaultItems: DEFAULT_ITEMS } );
+	restorePersistedState();
+	state.lastPointerIndex = state.items.length ?
+		renderer.getPointerIndex( state.items, state.rotation ) :
+		null;
+	renderer.draw( state.items, state.rotation );
 	spinner.spin();
 }
 

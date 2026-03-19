@@ -65,4 +65,17 @@ describe( 'wheel', () => {
 		expect( renderer.getPointerIndex( [ 'A', 'B', 'C', 'D' ], Math.PI / 2 ) ).toBe( 2 );
 		expect( renderer.getWinner( [ 'A', 'B', 'C', 'D' ], Math.PI / 2 ) ).toBe( 'C' );
 	} );
+
+	it( 'calculates a rotation that lands on the requested item', () => {
+		const renderer = createWheelRenderer( {
+			canvas: { width: 520 },
+			ctx: createContext(),
+			colors: [ '#111111' ],
+			emptyText: 'Add items'
+		} );
+		const items = [ 'A', 'B', 'C', 'D' ];
+		const rotation = renderer.getRotationForIndex( items, 1 );
+
+		expect( renderer.getWinner( items, rotation ) ).toBe( 'B' );
+	} );
 } );

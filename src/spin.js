@@ -7,9 +7,17 @@ function easeInOutCubic( t ) {
 function smoothNoise( t, seed ) {
 	return (
 		Math.sin( t * 7.1 + seed ) * 0.55 +
-        Math.sin( t * 15.7 + seed * 1.37 ) * 0.3 +
-        Math.sin( t * 28.3 + seed * 0.73 ) * 0.15
+		Math.sin( t * 15.7 + seed * 1.37 ) * 0.3 +
+		Math.sin( t * 28.3 + seed * 0.73 ) * 0.15
 	);
+}
+
+function pickWinnerIndex( items, lastWinnerIndex ) {
+	const eligibleWinnerIndexes = items
+		.map( ( item, index ) => index )
+		.filter( index => items.length < 2 || index !== lastWinnerIndex );
+
+	return eligibleWinnerIndexes[ Math.floor( Math.random() * eligibleWinnerIndexes.length ) ];
 }
 
 export function createSpinner( {
@@ -23,7 +31,8 @@ export function createSpinner( {
 	minFullSpins,
 	maxFullSpins,
 	minItemsMessage,
-	selectedPrefix
+	selectedPrefix,
+	persistState = () => {}
 } ) {
 	function spin() {
 		state.items = getItems();
@@ -43,9 +52,12 @@ export function createSpinner( {
 		setResult( '' );
 
 		const spins = minFullSpins + Math.floor( Math.random() * ( maxFullSpins - minFullSpins + 1 ) );
-		const extra = Math.random() * Math.PI * 2;
+		const winnerIndex = pickWinnerIndex( state.items, state.lastWinnerIndex );
 		const startRotation = state.rotation;
-		const targetRotation = state.rotation + spins * Math.PI * 2 + extra;
+		const normalizedStartRotation = ( ( state.rotation % ( Math.PI * 2 ) ) + Math.PI * 2 ) % ( Math.PI * 2 );
+		const finalRotation = renderer.getRotationForIndex( state.items, winnerIndex );
+		const additionalRotation = ( ( finalRotation - normalizedStartRotation ) % ( Math.PI * 2 ) + Math.PI * 2 ) % ( Math.PI * 2 );
+		const targetRotation = state.rotation + spins * Math.PI * 2 + additionalRotation;
 		const startTime = performance.now();
 		const noiseSeed = Math.random() * Math.PI * 2;
 		const arc = ( Math.PI * 2 ) / state.items.length;
@@ -89,12 +101,17 @@ export function createSpinner( {
 			}
 
 			state.rotation = targetRotation % ( Math.PI * 2 );
+			state.lastWinnerIndex = winnerIndex;
 			renderer.draw( state.items, state.rotation );
-			setResult( `${ selectedPrefix }${ renderer.getWinner( state.items, state.rotation ) }` );
+			setResult( `${ selectedPrefix }${ state.items[ winnerIndex ] }` );
 			audio.playBell();
 			state.isSpinning = false;
 			spinBtn.disabled = false;
 			state.lastPointerIndex = renderer.getPointerIndex( state.items, state.rotation );
+			persistState( {
+				rotation: state.rotation,
+				lastWinnerIndex: state.lastWinnerIndex
+			} );
 		}
 
 		requestAnimationFrame( animate );

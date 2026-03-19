@@ -113,6 +113,26 @@ test( 'spins the wheel and shows a selected item', async ( { page } ) => {
 	expect( items ).toContain( resultText.replace( 'Selected: ', '' ) );
 } );
 
+test( 'does not repeat the same winner after a reload for the same list', async ( { page } ) => {
+	const items = [ 'Alice', 'Bob', 'Carol' ];
+
+	await page.getByLabel( 'Wheel items' ).fill( items.join( '\n' ) );
+	await page.getByRole( 'button', { name: 'Update wheel' } ).click();
+	await page.getByRole( 'button', { name: 'Spin' } ).click();
+	await expect( page.locator( '#result' ) ).toContainText( 'Selected:' );
+
+	const firstWinner = ( await page.locator( '#result' ).textContent() ).replace( 'Selected: ', '' );
+
+	await page.reload();
+	await page.getByRole( 'button', { name: 'Spin' } ).click();
+	await expect( page.locator( '#result' ) ).toContainText( 'Selected:' );
+
+	const secondWinner = ( await page.locator( '#result' ).textContent() ).replace( 'Selected: ', '' );
+
+	expect( secondWinner ).not.toBe( firstWinner );
+	expect( items ).toContain( secondWinner );
+} );
+
 test( 'persists custom items in the shareable URL', async ( { page } ) => {
 	const items = [ 'Alice', 'Bob', 'Carol' ];
 

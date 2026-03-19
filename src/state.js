@@ -3,6 +3,7 @@ export function createState() {
 		items: [],
 		rotation: 0,
 		isSpinning: false,
-		lastPointerIndex: null
+		lastPointerIndex: null,
+		lastWinnerIndex: null
 	};
 }
