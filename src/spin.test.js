@@ -102,7 +102,7 @@ describe( 'spin', () => {
 		spinner.spin();
 
 		expect( ensureAudioContext ).toHaveBeenCalledOnce();
-		expect( getRotationForIndex ).toHaveBeenCalledWith( [ 'Pizza', 'Burger' ], 0, 0.18 );
+		expect( getRotationForIndex ).toHaveBeenCalledWith( [ 'Pizza', 'Burger' ], 0, 0.08 );
 		expect( draw ).toHaveBeenCalledTimes( 2 );
 		expect( playTick ).toHaveBeenCalledOnce();
 		expect( playBell ).toHaveBeenCalledOnce();
@@ -117,6 +117,71 @@ describe( 'spin', () => {
 		} );
 	} );
 
+	it( 'stops an active spin when requested', () => {
+		const state = {
+			items: [],
+			rotation: Math.PI / 3,
+			isSpinning: false,
+			lastPointerIndex: null,
+			lastWinnerIndex: 1
+		};
+		const setResult = vi.fn();
+		const draw = vi.fn();
+		const persistState = vi.fn();
+		const getPointerIndex = vi.fn().mockReturnValue( 0 );
+		const spinBtn = { disabled: false };
+		let nextHandle = 1;
+		let scheduledFrame = null;
+
+		vi.spyOn( Math, 'random' ).mockReturnValue( 0 );
+		vi.stubGlobal( 'requestAnimationFrame', callback => {
+			scheduledFrame = callback;
+			return nextHandle++;
+		} );
+		const cancelAnimationFrame = vi.fn();
+		vi.stubGlobal( 'cancelAnimationFrame', cancelAnimationFrame );
+
+		const spinner = createSpinner( {
+			state,
+			renderer: {
+				draw,
+				getPointerIndex,
+				getWinner: vi.fn(),
+				getRotationForIndex: vi.fn( () => Math.PI / 2 )
+			},
+			audio: {
+				ensureAudioContext: vi.fn(),
+				playTick: vi.fn(),
+				playBell: vi.fn()
+			},
+			spinBtn,
+			getItems: vi.fn( () => [ 'Pizza', 'Burger' ] ),
+			setResult,
+			spinDuration: 100,
+			minFullSpins: 6,
+			maxFullSpins: 10,
+			minItemsMessage: 'Add at least 2 items.',
+			selectedPrefix: 'Selected: ',
+			persistState
+		} );
+
+		spinner.spin();
+		scheduledFrame( 40 );
+		expect( state.rotation ).not.toBe( Math.PI / 3 );
+		spinner.stop();
+
+		expect( cancelAnimationFrame ).toHaveBeenCalledWith( 2 );
+		expect( spinBtn.disabled ).toBe( false );
+		expect( state.isSpinning ).toBe( false );
+		expect( state.rotation ).toBeCloseTo( Math.PI / 3, 10 );
+		expect( state.lastWinnerIndex ).toBe( 1 );
+		expect( setResult ).toHaveBeenNthCalledWith( 1, '' );
+		expect( setResult ).toHaveBeenNthCalledWith( 2, '' );
+		expect( persistState ).toHaveBeenCalledTimes( 1 );
+		expect( persistState.mock.calls[ 0 ][ 0 ].rotation ).toBeCloseTo( Math.PI / 3, 10 );
+		expect( persistState.mock.calls[ 0 ][ 0 ].lastWinnerIndex ).toBe( 1 );
+	} );
+
 	it( 'never picks the same winner twice in a row when multiple items exist', () => {
 		const state = {
 			items: [],
@@ -127,6 +192,9 @@ describe( 'spin', () => {
 		};
 
 		vi.spyOn( Math, 'random' )
+			.mockReturnValueOnce( 0 )
+			.mockReturnValueOnce( 0 )
+			.mockReturnValueOnce( 0 )
 			.mockReturnValueOnce( 0 )
 			.mockReturnValueOnce( 0 )
 			.mockReturnValueOnce( 0 )

@@ -25,9 +25,12 @@ function pickWinnerIndex( items, lastWinnerIndex ) {
 }
 
 function pickWinnerOffset() {
-	const edgePadding = 0.18;
+	const edgePadding = 0.08;
+	const edgeBand = 0.18;
+	const landsNearLeadingEdge = Math.random() < 0.5;
+	const edgeOffset = edgePadding + Math.random() * edgeBand;
 
-	return edgePadding + Math.random() * ( 1 - edgePadding * 2 );
+	return landsNearLeadingEdge ? edgeOffset : 1 - edgeOffset;
 }
 
 export function createSpinner( {
@@ -44,6 +47,37 @@ export function createSpinner( {
 	selectedPrefix,
 	persistState = () => {}
 } ) {
+	let activeAnimationFrame = null;
+	let activeSpinToken = null;
+	let activeSpinStartRotation = null;
+
+	function stop() {
+		if ( !state.isSpinning ) {
+			return;
+		}
+
+		activeSpinToken = null;
+
+		if ( typeof cancelAnimationFrame === 'function' && activeAnimationFrame !== null ) {
+			cancelAnimationFrame( activeAnimationFrame );
+		}
+
+		activeAnimationFrame = null;
+		state.rotation = normalizeRotation( activeSpinStartRotation ?? state.rotation );
+		activeSpinStartRotation = null;
+		state.isSpinning = false;
+		spinBtn.disabled = false;
+		setResult( '' );
+		state.lastPointerIndex = state.items.length ?
+			renderer.getPointerIndex( state.items, state.rotation ) :
+			null;
+		renderer.draw( state.items, state.rotation );
+		persistState( {
+			rotation: state.rotation,
+			lastWinnerIndex: state.lastWinnerIndex
+		} );
+	}
+
 	function spin() {
 		state.items = getItems();
 
@@ -62,8 +96,13 @@ export function createSpinner( {
 		setResult( '' );
 
 		const spins = minFullSpins + Math.floor( Math.random() * ( maxFullSpins - minFullSpins + 1 ) );
+		const arc = ( Math.PI * 2 ) / state.items.length;
 		const winnerIndex = pickWinnerIndex( state.items, state.lastWinnerIndex );
 		const winnerOffset = pickWinnerOffset();
+		const edgeDistance = Math.min( winnerOffset, 1 - winnerOffset );
+		const edgeRotationDirection = winnerOffset < 0.5 ? 1 : -1;
+		const dramaticJump = Math.random() < 0.35;
+		const teaseAmplitude = edgeDistance * arc + arc * ( dramaticJump ? 0.07 : -0.015 );
 		const startRotation = state.rotation;
 		const normalizedStartRotation = normalizeRotation( state.rotation );
 		const finalRotation = renderer.getRotationForIndex( state.items, winnerIndex, winnerOffset );
@@ -71,10 +110,17 @@ export function createSpinner( {
 		const targetRotation = state.rotation + spins * Math.PI * 2 + additionalRotation;
 		const startTime = performance.now();
 		const noiseSeed = Math.random() * Math.PI * 2;
-		const arc = ( Math.PI * 2 ) / state.items.length;
 		state.lastPointerIndex = renderer.getPointerIndex( state.items, state.rotation );
+		const spinToken = Symbol( 'spin' );
+
+		activeSpinToken = spinToken;
+		activeSpinStartRotation = state.rotation;
 
 		function animate( now ) {
+			if ( activeSpinToken !== spinToken ) {
+				return;
+			}
+
 			const elapsed = now - startTime;
 			const progress = Math.min( elapsed / spinDuration, 1 );
 			const eased = easeInOutCubic( progress );
@@ -96,6 +142,13 @@ export function createSpinner( {
 				wobble += overshootAmplitude * damped;
 			}
 
+			if ( progress > 0.82 ) {
+				const suspense = ( progress - 0.82 ) / 0.18;
+				const teaseEnvelope = Math.sin( suspense * Math.PI ) * Math.exp( -suspense * 1.35 );
+
+				wobble += edgeRotationDirection * teaseAmplitude * teaseEnvelope;
+			}
+
 			state.rotation = baseRotation + wobble;
 			renderer.draw( state.items, state.rotation );
 
@@ -107,10 +160,13 @@ export function createSpinner( {
 			}
 
 			if ( progress < 1 ) {
-				requestAnimationFrame( animate );
+				activeAnimationFrame = requestAnimationFrame( animate );
 				return;
 			}
 
+			activeAnimationFrame = null;
+			activeSpinToken = null;
+			activeSpinStartRotation = null;
 			state.rotation = normalizeRotation( targetRotation );
 			state.lastWinnerIndex = winnerIndex;
 			renderer.draw( state.items, state.rotation );
@@ -125,10 +181,11 @@ export function createSpinner( {
 			} );
 		}
 
-		requestAnimationFrame( animate );
+		activeAnimationFrame = requestAnimationFrame( animate );
 	}
 
 	return {
-		spin
+		spin,
+		stop
 	};
 }

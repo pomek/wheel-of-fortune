@@ -105,6 +105,7 @@ function spinWheel() {
 elements.updateBtn.addEventListener( 'click', updateWheel );
 elements.spinBtn.addEventListener( 'click', spinWheel );
 elements.resetBtn.addEventListener( 'click', resetWheel );
+elements.textarea.addEventListener( 'focus', spinner.stop );
 elements.textarea.addEventListener( 'blur', syncUrlState );
 
 elements.textarea.value = formatItems( getItemsFromHash( window.location.hash ) || DEFAULT_ITEMS );
