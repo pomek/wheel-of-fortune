@@ -61,9 +61,9 @@ describe( 'wheel', () => {
 			emptyText: 'Add items'
 		} );
 
-		expect( renderer.getPointerIndex( [ 'A', 'B', 'C', 'D' ], 0 ) ).toBe( 3 );
-		expect( renderer.getPointerIndex( [ 'A', 'B', 'C', 'D' ], Math.PI / 2 ) ).toBe( 2 );
-		expect( renderer.getWinner( [ 'A', 'B', 'C', 'D' ], Math.PI / 2 ) ).toBe( 'C' );
+		expect( renderer.getPointerIndex( [ 'A', 'B', 'C', 'D' ], 0 ) ).toBe( 0 );
+		expect( renderer.getPointerIndex( [ 'A', 'B', 'C', 'D' ], Math.PI / 2 ) ).toBe( 3 );
+		expect( renderer.getWinner( [ 'A', 'B', 'C', 'D' ], Math.PI / 2 ) ).toBe( 'D' );
 	} );
 
 	it( 'calculates a rotation that lands on the requested item', () => {

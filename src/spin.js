@@ -12,6 +12,10 @@ function smoothNoise( t, seed ) {
 	);
 }
 
+function normalizeRotation( rotation ) {
+	return ( ( rotation % ( Math.PI * 2 ) ) + Math.PI * 2 ) % ( Math.PI * 2 );
+}
+
 function pickWinnerIndex( items, lastWinnerIndex ) {
 	const eligibleWinnerIndexes = items
 		.map( ( item, index ) => index )
@@ -54,7 +58,7 @@ export function createSpinner( {
 		const spins = minFullSpins + Math.floor( Math.random() * ( maxFullSpins - minFullSpins + 1 ) );
 		const winnerIndex = pickWinnerIndex( state.items, state.lastWinnerIndex );
 		const startRotation = state.rotation;
-		const normalizedStartRotation = ( ( state.rotation % ( Math.PI * 2 ) ) + Math.PI * 2 ) % ( Math.PI * 2 );
+		const normalizedStartRotation = normalizeRotation( state.rotation );
 		const finalRotation = renderer.getRotationForIndex( state.items, winnerIndex );
 		const additionalRotation = ( ( finalRotation - normalizedStartRotation ) % ( Math.PI * 2 ) + Math.PI * 2 ) % ( Math.PI * 2 );
 		const targetRotation = state.rotation + spins * Math.PI * 2 + additionalRotation;
@@ -100,7 +104,7 @@ export function createSpinner( {
 				return;
 			}
 
-			state.rotation = targetRotation % ( Math.PI * 2 );
+			state.rotation = normalizeRotation( targetRotation );
 			state.lastWinnerIndex = winnerIndex;
 			renderer.draw( state.items, state.rotation );
 			setResult( `${ selectedPrefix }${ state.items[ winnerIndex ] }` );

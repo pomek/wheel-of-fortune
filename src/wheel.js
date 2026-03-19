@@ -59,7 +59,7 @@ export function createWheelRenderer( { canvas, ctx, colors, emptyText } ) {
 
 	function getPointerIndex( list, currentRotation ) {
 		const arc = ( Math.PI * 2 ) / list.length;
-		const normalized = ( ( Math.PI * 1.5 - currentRotation ) % ( Math.PI * 2 ) + Math.PI * 2 ) % ( Math.PI * 2 );
+		const normalized = ( ( -currentRotation ) % ( Math.PI * 2 ) + Math.PI * 2 ) % ( Math.PI * 2 );
 		return Math.floor( normalized / arc ) % list.length;
 	}
 
@@ -71,7 +71,7 @@ export function createWheelRenderer( { canvas, ctx, colors, emptyText } ) {
 		const arc = ( Math.PI * 2 ) / list.length;
 		const normalized = index * arc + arc / 2;
 
-		return ( ( Math.PI * 1.5 - normalized ) % ( Math.PI * 2 ) + Math.PI * 2 ) % ( Math.PI * 2 );
+		return ( ( -normalized ) % ( Math.PI * 2 ) + Math.PI * 2 ) % ( Math.PI * 2 );
 	}
 
 	return {
