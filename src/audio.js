@@ -39,7 +39,7 @@ export function createAudioPlayer( {
 	bellUrl = bellRingUrl
 } = {} ) {
 	const clickTemplate = createSoundTemplate( AudioClass, clickUrl, 0.18 );
-	const bellTemplate = createSoundTemplate( AudioClass, bellUrl, 0.42 );
+	const bellTemplate = createSoundTemplate( AudioClass, bellUrl, 0.25 );
 	let isPrepared = false;
 
 	function ensureAudioContext() {
@@ -66,7 +66,7 @@ export function createAudioPlayer( {
 	}
 
 	function playBell() {
-		playSound( AudioClass, bellTemplate, { volume: 0.42 } );
+		playSound( AudioClass, bellTemplate, { volume: 0.25 } );
 	}
 
 	return {

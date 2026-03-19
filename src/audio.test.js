@@ -86,7 +86,7 @@ describe( 'audio', () => {
 
 		expect( instances ).toHaveLength( 3 );
 		expect( instances[ 2 ].src ).toBe( '/bell.mp3' );
-		expect( instances[ 2 ].volume ).toBe( 0.42 );
+		expect( instances[ 2 ].volume ).toBe( 0.25 );
 		expect( instances[ 2 ].playbackRate ).toBe( 1 );
 		expect( instances[ 2 ].currentTime ).toBe( 0 );
 		expect( instances[ 2 ].play ).toHaveBeenCalledOnce();
