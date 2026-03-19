@@ -113,6 +113,13 @@ test( 'spins the wheel and shows a selected item', async ( { page } ) => {
 	expect( items ).toContain( resultText.replace( 'Selected: ', '' ) );
 } );
 
+test( 'pressing Space starts the spin when the textarea is not focused', async ( { page } ) => {
+	await page.locator( 'body' ).click( { position: { x: 20, y: 20 } } );
+	await page.keyboard.press( 'Space' );
+
+	await expect( page.locator( '#result' ) ).toContainText( 'Selected:' );
+} );
+
 test( 'focusing the textarea stops an active spin', async ( { page } ) => {
 	await page.evaluate( () => {
 		let frame = 0;

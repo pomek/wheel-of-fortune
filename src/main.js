@@ -99,11 +99,29 @@ function spinWheel() {
 	spinner.spin();
 }
 
+function handleWindowKeydown( event ) {
+	if ( event.code !== 'Space' || event.repeat || event.altKey || event.ctrlKey || event.metaKey ) {
+		return;
+	}
+
+	if ( event.target instanceof HTMLElement ) {
+		const interactiveTags = [ 'BUTTON', 'INPUT', 'SELECT', 'TEXTAREA' ];
+
+		if ( interactiveTags.includes( event.target.tagName ) || event.target.isContentEditable ) {
+			return;
+		}
+	}
+
+	event.preventDefault();
+	spinWheel();
+}
+
 elements.updateBtn.addEventListener( 'click', updateWheel );
 elements.spinBtn.addEventListener( 'click', spinWheel );
 elements.resetBtn.addEventListener( 'click', resetWheel );
 elements.textarea.addEventListener( 'focus', spinner.stop );
 elements.textarea.addEventListener( 'blur', syncUrlState );
+window.addEventListener( 'keydown', handleWindowKeydown );
 
 elements.textarea.value = formatItems( getItemsFromHash( window.location.hash ) || DEFAULT_ITEMS );
 updateWheel();
