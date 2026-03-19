@@ -1,56 +1,77 @@
-export function createAudioPlayer() {
-	let audioContext = null;
+import bellRingUrl from 'ion-sound/sounds/bell_ring.mp3';
+import clickSoundUrl from 'ion-sound/sounds/snap.mp3';
+
+function createSoundTemplate( AudioClass, url, volume ) {
+	if ( !AudioClass ) {
+		return null;
+	}
+
+	const sound = new AudioClass( url );
+
+	sound.preload = 'auto';
+	sound.volume = volume;
+
+	return sound;
+}
+
+function playSound( AudioClass, template, { volume, playbackRate = 1 } = {} ) {
+	if ( !AudioClass || !template ) {
+		return;
+	}
+
+	const sound = new AudioClass( template.src );
+
+	sound.preload = 'auto';
+	sound.volume = volume;
+	sound.playbackRate = playbackRate;
+	sound.currentTime = 0;
+
+	const playResult = sound.play();
+
+	if ( typeof playResult?.catch === 'function' ) {
+		playResult.catch( () => {} );
+	}
+}
+
+export function createAudioPlayer( {
+	AudioClass = typeof window !== 'undefined' ? window.Audio : null,
+	clickUrl = clickSoundUrl,
+	bellUrl = bellRingUrl
+} = {} ) {
+	const clickTemplate = createSoundTemplate( AudioClass, clickUrl, 0.18 );
+	const bellTemplate = createSoundTemplate( AudioClass, bellUrl, 0.42 );
+	let isPrepared = false;
 
 	function ensureAudioContext() {
-		if ( !audioContext ) {
-			const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-			if ( !AudioContextClass ) {
-				return null;
-			}
-
-			audioContext = new AudioContextClass();
+		if ( !clickTemplate || !bellTemplate ) {
+			return null;
 		}
 
-		if ( audioContext.state === 'suspended' ) {
-			audioContext.resume();
+		if ( !isPrepared ) {
+			clickTemplate.load();
+			bellTemplate.load();
+			isPrepared = true;
 		}
 
-		return audioContext;
+		return true;
 	}
 
 	function playTick( intensity = 1 ) {
-		const context = ensureAudioContext();
-		if ( !context ) {
-			return;
-		}
-
 		const clamped = Math.max( 0.35, Math.min( 1, intensity ) );
-		const now = context.currentTime;
-		const oscillator = context.createOscillator();
-		const gainNode = context.createGain();
-		const filter = context.createBiquadFilter();
 
-		oscillator.type = 'square';
-		oscillator.frequency.setValueAtTime( 1500 - clamped * 250, now );
-		oscillator.frequency.exponentialRampToValueAtTime( 950 - clamped * 120, now + 0.02 );
+		playSound( AudioClass, clickTemplate, {
+			volume: 0.08 + clamped * 0.08,
+			playbackRate: 0.94 + clamped * 0.12
+		} );
+	}
 
-		filter.type = 'highpass';
-		filter.frequency.setValueAtTime( 650, now );
-
-		gainNode.gain.setValueAtTime( 0.0001, now );
-		gainNode.gain.exponentialRampToValueAtTime( 0.05 + clamped * 0.09, now + 0.002 );
-		gainNode.gain.exponentialRampToValueAtTime( 0.0001, now + 0.028 + clamped * 0.012 );
-
-		oscillator.connect( filter );
-		filter.connect( gainNode );
-		gainNode.connect( context.destination );
-
-		oscillator.start( now );
-		oscillator.stop( now + 0.035 + clamped * 0.012 );
+	function playBell() {
+		playSound( AudioClass, bellTemplate, { volume: 0.42 } );
 	}
 
 	return {
 		ensureAudioContext,
-		playTick
+		playTick,
+		playBell
 	};
 }

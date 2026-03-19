@@ -28,7 +28,8 @@ describe( 'spin', () => {
 			},
 			audio: {
 				ensureAudioContext: vi.fn(),
-				playTick: vi.fn()
+				playTick: vi.fn(),
+				playBell: vi.fn()
 			},
 			spinBtn: { disabled: false },
 			getItems: vi.fn( () => [ 'Only one' ] ),
@@ -62,6 +63,7 @@ describe( 'spin', () => {
 		const getWinner = vi.fn( () => 'Pizza' );
 		const ensureAudioContext = vi.fn();
 		const playTick = vi.fn();
+		const playBell = vi.fn();
 
 		vi.spyOn( Math, 'random' ).mockReturnValue( 0 );
 		vi.stubGlobal( 'requestAnimationFrame', callback => {
@@ -78,7 +80,8 @@ describe( 'spin', () => {
 			},
 			audio: {
 				ensureAudioContext,
-				playTick
+				playTick,
+				playBell
 			},
 			spinBtn: { disabled: false },
 			getItems: vi.fn( () => [ 'Pizza', 'Burger' ] ),
@@ -95,6 +98,7 @@ describe( 'spin', () => {
 		expect( ensureAudioContext ).toHaveBeenCalledOnce();
 		expect( draw ).toHaveBeenCalledTimes( 2 );
 		expect( playTick ).toHaveBeenCalledOnce();
+		expect( playBell ).toHaveBeenCalledOnce();
 		expect( setResult ).toHaveBeenNthCalledWith( 1, '' );
 		expect( setResult ).toHaveBeenNthCalledWith( 2, 'Selected: Pizza' );
 		expect( state.isSpinning ).toBe( false );

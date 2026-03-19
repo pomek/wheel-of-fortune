@@ -91,6 +91,7 @@ export function createSpinner( {
 			state.rotation = targetRotation % ( Math.PI * 2 );
 			renderer.draw( state.items, state.rotation );
 			setResult( `${ selectedPrefix }${ renderer.getWinner( state.items, state.rotation ) }` );
+			audio.playBell();
 			state.isSpinning = false;
 			spinBtn.disabled = false;
 			state.lastPointerIndex = renderer.getPointerIndex( state.items, state.rotation );

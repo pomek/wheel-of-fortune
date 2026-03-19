@@ -28,6 +28,7 @@
     "vitest": "^4.1.0"
   },
   "dependencies": {
+    "ion-sound": "^3.0.7",
     "lz-string": "^1.5.0"
   }
 }

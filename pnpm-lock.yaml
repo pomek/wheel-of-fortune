@@ -8,6 +8,9 @@ importers:
 
   .:
     dependencies:
+      ion-sound:
+        specifier: ^3.0.7
+        version: 3.0.7
       lz-string:
         specifier: ^1.5.0
         version: 1.5.0
@@ -785,6 +788,9 @@ packages:
   imurmurhash@0.1.4:
     resolution: {integrity: sha512-JmXMZ6wuvDmLiHEml9ykzqO6lwFbof0GG4IkcGaENdCRDDmMVnny7s5HsIgHCbaq0w2MyPhDqkhTUgS2LU2PHA==}
     engines: {node: '>=0.8.19'}
+
+  ion-sound@3.0.7:
+    resolution: {integrity: sha512-5kF3ld2ndAO5ok79Cyf1eUTE66z8jEIqLP+QZsFZHohxiMxLN8MFchBm0w3sK22jZCad2j4eZ3kpZw1OYiRC4g==}
 
   is-extglob@2.1.1:
     resolution: {integrity: sha512-SbKbANkN603Vi4jEZv49LeVJMn4yGwsbzZworEoyEiutsN3nJYdbO36zfhGJ6QEDpOZIFkDtnq5JRxmvl3jsoQ==}
@@ -2189,6 +2195,8 @@ snapshots:
       resolve-from: 4.0.0
 
   imurmurhash@0.1.4: {}
+
+  ion-sound@3.0.7: {}
 
   is-extglob@2.1.1: {}
 
