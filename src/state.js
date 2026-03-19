@@ -4,6 +4,6 @@ export function createState() {
 		rotation: 0,
 		isSpinning: false,
 		lastPointerIndex: null,
-		lastWinnerIndex: null
+		recentWinnerIndexes: []
 	};
 }

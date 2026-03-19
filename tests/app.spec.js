@@ -162,6 +162,33 @@ test( 'does not repeat the same winner after a reload for the same list', async 
 	expect( items ).toContain( secondWinner );
 } );
 
+test( 'avoids the previous two winners when enough items exist', async ( { page } ) => {
+	const items = [ 'Alice', 'Bob', 'Carol', 'Dave' ];
+
+	await page.getByLabel( 'Wheel items' ).fill( items.join( '\n' ) );
+	await page.getByRole( 'button', { name: 'Update wheel' } ).click();
+	await page.getByRole( 'button', { name: 'Spin' } ).click();
+	await expect( page.locator( '#result' ) ).toContainText( 'Selected:' );
+
+	const firstWinner = ( await page.locator( '#result' ).textContent() ).replace( 'Selected: ', '' );
+
+	await page.reload();
+	await page.getByRole( 'button', { name: 'Spin' } ).click();
+	await expect( page.locator( '#result' ) ).toContainText( 'Selected:' );
+
+	const secondWinner = ( await page.locator( '#result' ).textContent() ).replace( 'Selected: ', '' );
+
+	await page.reload();
+	await page.getByRole( 'button', { name: 'Spin' } ).click();
+	await expect( page.locator( '#result' ) ).toContainText( 'Selected:' );
+
+	const thirdWinner = ( await page.locator( '#result' ).textContent() ).replace( 'Selected: ', '' );
+
+	expect( thirdWinner ).not.toBe( firstWinner );
+	expect( thirdWinner ).not.toBe( secondWinner );
+	expect( items ).toContain( thirdWinner );
+} );
+
 test( 'persists custom items in the shareable URL', async ( { page } ) => {
 	const items = [ 'Alice', 'Bob', 'Carol' ];
 

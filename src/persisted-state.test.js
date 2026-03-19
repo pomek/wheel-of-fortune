@@ -29,7 +29,7 @@ describe( 'persisted-state', () => {
 
 		savePersistedState( {
 			rotation: Math.PI,
-			lastWinnerIndex: 2
+			recentWinnerIndexes: [ 2, 0 ]
 		}, {
 			hash: '#/team-a',
 			storage
@@ -37,7 +37,7 @@ describe( 'persisted-state', () => {
 
 		savePersistedState( {
 			rotation: Math.PI / 2,
-			lastWinnerIndex: 1
+			recentWinnerIndexes: [ 1 ]
 		}, {
 			hash: '#/team-b',
 			storage
@@ -45,11 +45,25 @@ describe( 'persisted-state', () => {
 
 		expect( loadPersistedState( { hash: '#/team-a', storage } ) ).toEqual( {
 			rotation: Math.PI,
-			lastWinnerIndex: 2
+			recentWinnerIndexes: [ 2, 0 ]
 		} );
 		expect( loadPersistedState( { hash: '#/team-b', storage } ) ).toEqual( {
 			rotation: Math.PI / 2,
-			lastWinnerIndex: 1
+			recentWinnerIndexes: [ 1 ]
+		} );
+	} );
+
+	it( 'supports older persisted state with one last winner', () => {
+		const storage = createStorage();
+
+		storage.setItem( getPersistedStateStorageKey( '#/team-a' ), JSON.stringify( {
+			rotation: Math.PI,
+			lastWinnerIndex: 2
+		} ) );
+
+		expect( loadPersistedState( { hash: '#/team-a', storage } ) ).toEqual( {
+			rotation: Math.PI,
+			recentWinnerIndexes: [ 2 ]
 		} );
 	} );
 
@@ -60,11 +74,11 @@ describe( 'persisted-state', () => {
 
 		expect( loadPersistedState( { hash: '#/team-a', storage } ) ).toEqual( {
 			rotation: 0,
-			lastWinnerIndex: null
+			recentWinnerIndexes: []
 		} );
 		expect( loadPersistedState( { hash: '#/missing', storage } ) ).toEqual( {
 			rotation: 0,
-			lastWinnerIndex: null
+			recentWinnerIndexes: []
 		} );
 	} );
 
@@ -73,7 +87,7 @@ describe( 'persisted-state', () => {
 
 		savePersistedState( {
 			rotation: Math.PI,
-			lastWinnerIndex: 2
+			recentWinnerIndexes: [ 2, 0 ]
 		}, {
 			hash: '#/team-a',
 			storage
@@ -83,7 +97,7 @@ describe( 'persisted-state', () => {
 
 		expect( loadPersistedState( { hash: '#/team-a', storage } ) ).toEqual( {
 			rotation: 0,
-			lastWinnerIndex: null
+			recentWinnerIndexes: []
 		} );
 	} );
 } );

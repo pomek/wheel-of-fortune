@@ -43,11 +43,8 @@ function restorePersistedState() {
 	const persistedState = loadPersistedState();
 
 	state.rotation = persistedState.rotation;
-	state.lastWinnerIndex = Number.isInteger( persistedState.lastWinnerIndex ) &&
-		persistedState.lastWinnerIndex >= 0 &&
-		persistedState.lastWinnerIndex < state.items.length ?
-		persistedState.lastWinnerIndex :
-		null;
+	state.recentWinnerIndexes = persistedState.recentWinnerIndexes
+		.filter( index => index >= 0 && index < state.items.length );
 }
 
 function updateWheel( { restoreState = true } = {} ) {
@@ -58,7 +55,7 @@ function updateWheel( { restoreState = true } = {} ) {
 		restorePersistedState();
 	} else {
 		state.rotation = 0;
-		state.lastWinnerIndex = null;
+		state.recentWinnerIndexes = [];
 	}
 
 	setResult( '' );
