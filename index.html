@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Wheel of Fortune</title>
+    <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+<div class="app">
+    <section class="panel">
+        <h1>Wheel of Fortune</h1>
+        <div class="sub">
+            Enter items one per line. The animation lasts 5 seconds: a fast start, then a gradual slowdown.
+        </div>
+
+        <label for="items">Wheel items</label>
+        <textarea id="items">Pizza
+Burger
+Sushi
+Taco
+Kebab
+Ramen</textarea>
+
+        <div class="buttons">
+            <button id="updateBtn" class="secondary">Update wheel</button>
+            <button id="spinBtn" class="primary">Spin</button>
+            <button id="resetBtn" class="danger">Reset</button>
+        </div>
+    </section>
+
+    <section class="panel wheel-wrap">
+        <div class="pointer"></div>
+        <div class="wheel-box">
+            <canvas id="wheel" width="520" height="520"></canvas>
+        </div>
+        <div id="result" class="result"></div>
+        <div class="hint">
+            You hear a click as segments pass under the pointer. As the wheel slows down, the clicks become less frequent.
+        </div>
+    </section>
+</div>
+
+<script src="./app.js"></script>
+</body>
+</html>
