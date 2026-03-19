@@ -87,7 +87,6 @@ test.beforeEach( async ( { page } ) => {
 test( 'loads the app with default controls', async ( { page } ) => {
 	await expect( page ).toHaveTitle( 'Wheel of Fortune' );
 	await expect( page.getByRole( 'heading', { name: 'Wheel of Fortune' } ) ).toBeVisible();
-	await expect( page.getByRole( 'button', { name: 'Update wheel' } ) ).toBeVisible();
 	await expect( page.getByRole( 'button', { name: 'Spin' } ) ).toBeVisible();
 	await expect( page.getByRole( 'button', { name: 'Reset' } ) ).toBeVisible();
 	await expect( page.getByLabel( 'Wheel items' ) ).toHaveValue( defaultItems.join( '\n' ) );
@@ -104,7 +103,7 @@ test( 'spins the wheel and shows a selected item', async ( { page } ) => {
 	const items = [ 'Apple', 'Banana', 'Cherry', 'Date' ];
 
 	await page.getByLabel( 'Wheel items' ).fill( items.join( '\n' ) );
-	await page.getByRole( 'button', { name: 'Update wheel' } ).click();
+	await page.getByLabel( 'Wheel items' ).blur();
 	await page.getByRole( 'button', { name: 'Spin' } ).click();
 
 	await expect( page.locator( '#result' ) ).toContainText( 'Selected:' );
@@ -153,7 +152,7 @@ test( 'does not repeat the same winner after a reload for the same list', async 
 	const items = [ 'Alice', 'Bob', 'Carol' ];
 
 	await page.getByLabel( 'Wheel items' ).fill( items.join( '\n' ) );
-	await page.getByRole( 'button', { name: 'Update wheel' } ).click();
+	await page.getByLabel( 'Wheel items' ).blur();
 	await page.getByRole( 'button', { name: 'Spin' } ).click();
 	await expect( page.locator( '#result' ) ).toContainText( 'Selected:' );
 
@@ -173,7 +172,7 @@ test( 'avoids the previous two winners when enough items exist', async ( { page 
 	const items = [ 'Alice', 'Bob', 'Carol', 'Dave' ];
 
 	await page.getByLabel( 'Wheel items' ).fill( items.join( '\n' ) );
-	await page.getByRole( 'button', { name: 'Update wheel' } ).click();
+	await page.getByLabel( 'Wheel items' ).blur();
 	await page.getByRole( 'button', { name: 'Spin' } ).click();
 	await expect( page.locator( '#result' ) ).toContainText( 'Selected:' );
 
@@ -194,6 +193,16 @@ test( 'avoids the previous two winners when enough items exist', async ( { page 
 	expect( thirdWinner ).not.toBe( firstWinner );
 	expect( thirdWinner ).not.toBe( secondWinner );
 	expect( items ).toContain( thirdWinner );
+} );
+
+test( 'pressing Enter in the textarea updates the wheel state', async ( { page } ) => {
+	const textarea = page.getByLabel( 'Wheel items' );
+
+	await textarea.fill( 'Alice\nBob' );
+	await textarea.press( 'End' );
+	await textarea.press( 'Enter' );
+
+	await expect.poll( () => new URL( page.url() ).hash ).toMatch( /^#\/.+/ );
 } );
 
 test( 'persists custom items in the shareable URL', async ( { page } ) => {

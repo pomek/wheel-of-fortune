@@ -11,7 +11,6 @@ describe( 'dom', () => {
 	beforeEach( () => {
 		document.body.innerHTML = `
             <textarea id="items"></textarea>
-            <button id="updateBtn"></button>
             <button id="spinBtn"></button>
             <button id="resetBtn"></button>
             <div id="result"></div>
@@ -32,7 +31,6 @@ describe( 'dom', () => {
 		const elements = getElements();
 
 		expect( elements.textarea.id ).toBe( 'items' );
-		expect( elements.updateBtn.id ).toBe( 'updateBtn' );
 		expect( elements.spinBtn.id ).toBe( 'spinBtn' );
 		expect( elements.resetBtn.id ).toBe( 'resetBtn' );
 		expect( elements.resultEl.id ).toBe( 'result' );

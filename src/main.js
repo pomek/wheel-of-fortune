@@ -35,10 +35,6 @@ function getItems() {
 	return parseItems( elements.textarea.value );
 }
 
-function syncUrlState() {
-	syncItemsInUrl( getItems(), { defaultItems: DEFAULT_ITEMS } );
-}
-
 function restorePersistedState() {
 	const persistedState = loadPersistedState();
 
@@ -67,7 +63,6 @@ function updateWheel( { restoreState = true } = {} ) {
 
 function resetWheel() {
 	elements.textarea.value = formatItems( DEFAULT_ITEMS );
-	syncUrlState();
 	clearPersistedState();
 	setResult( '' );
 	updateWheel( { restoreState: false } );
@@ -116,11 +111,27 @@ function handleWindowKeydown( event ) {
 	spinWheel();
 }
 
-elements.updateBtn.addEventListener( 'click', updateWheel );
+function handleTextareaBlur() {
+	updateWheel();
+}
+
+function handleTextareaKeydown( event ) {
+	if ( event.key !== 'Enter' || event.shiftKey || event.altKey || event.ctrlKey || event.metaKey ) {
+		return;
+	}
+
+	window.setTimeout( () => {
+		if ( document.activeElement === elements.textarea ) {
+			updateWheel();
+		}
+	}, 0 );
+}
+
 elements.spinBtn.addEventListener( 'click', spinWheel );
 elements.resetBtn.addEventListener( 'click', resetWheel );
 elements.textarea.addEventListener( 'focus', spinner.stop );
-elements.textarea.addEventListener( 'blur', syncUrlState );
+elements.textarea.addEventListener( 'blur', handleTextareaBlur );
+elements.textarea.addEventListener( 'keydown', handleTextareaKeydown );
 window.addEventListener( 'keydown', handleWindowKeydown );
 
 elements.textarea.value = formatItems( getItemsFromHash( window.location.hash ) || DEFAULT_ITEMS );

@@ -1,6 +1,5 @@
 export function getElements() {
 	const textarea = document.getElementById( 'items' );
-	const updateBtn = document.getElementById( 'updateBtn' );
 	const spinBtn = document.getElementById( 'spinBtn' );
 	const resetBtn = document.getElementById( 'resetBtn' );
 	const resultEl = document.getElementById( 'result' );
@@ -9,7 +8,6 @@ export function getElements() {
 
 	return {
 		textarea,
-		updateBtn,
 		spinBtn,
 		resetBtn,
 		resultEl,
