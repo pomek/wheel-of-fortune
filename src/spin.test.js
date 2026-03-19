@@ -102,7 +102,7 @@ describe( 'spin', () => {
 		spinner.spin();
 
 		expect( ensureAudioContext ).toHaveBeenCalledOnce();
-		expect( getRotationForIndex ).toHaveBeenCalledWith( [ 'Pizza', 'Burger' ], 0 );
+		expect( getRotationForIndex ).toHaveBeenCalledWith( [ 'Pizza', 'Burger' ], 0, 0.18 );
 		expect( draw ).toHaveBeenCalledTimes( 2 );
 		expect( playTick ).toHaveBeenCalledOnce();
 		expect( playBell ).toHaveBeenCalledOnce();
@@ -127,6 +127,7 @@ describe( 'spin', () => {
 		};
 
 		vi.spyOn( Math, 'random' )
+			.mockReturnValueOnce( 0 )
 			.mockReturnValueOnce( 0 )
 			.mockReturnValueOnce( 0 )
 			.mockReturnValueOnce( 0 );

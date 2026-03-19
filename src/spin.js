@@ -24,6 +24,12 @@ function pickWinnerIndex( items, lastWinnerIndex ) {
 	return eligibleWinnerIndexes[ Math.floor( Math.random() * eligibleWinnerIndexes.length ) ];
 }
 
+function pickWinnerOffset() {
+	const edgePadding = 0.18;
+
+	return edgePadding + Math.random() * ( 1 - edgePadding * 2 );
+}
+
 export function createSpinner( {
 	state,
 	renderer,
@@ -57,9 +63,10 @@ export function createSpinner( {
 
 		const spins = minFullSpins + Math.floor( Math.random() * ( maxFullSpins - minFullSpins + 1 ) );
 		const winnerIndex = pickWinnerIndex( state.items, state.lastWinnerIndex );
+		const winnerOffset = pickWinnerOffset();
 		const startRotation = state.rotation;
 		const normalizedStartRotation = normalizeRotation( state.rotation );
-		const finalRotation = renderer.getRotationForIndex( state.items, winnerIndex );
+		const finalRotation = renderer.getRotationForIndex( state.items, winnerIndex, winnerOffset );
 		const additionalRotation = ( ( finalRotation - normalizedStartRotation ) % ( Math.PI * 2 ) + Math.PI * 2 ) % ( Math.PI * 2 );
 		const targetRotation = state.rotation + spins * Math.PI * 2 + additionalRotation;
 		const startTime = performance.now();
