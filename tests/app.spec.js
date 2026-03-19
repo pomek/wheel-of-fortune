@@ -113,8 +113,23 @@ test( 'spins the wheel and shows a selected item', async ( { page } ) => {
 	expect( items ).toContain( resultText.replace( 'Selected: ', '' ) );
 } );
 
+test( 'persists custom items in the shareable URL', async ( { page } ) => {
+	const items = [ 'Alice', 'Bob', 'Carol' ];
+
+	await page.getByLabel( 'Wheel items' ).fill( items.join( '\n' ) );
+	await page.getByLabel( 'Wheel items' ).blur();
+
+	await expect.poll( () => new URL( page.url() ).hash ).toMatch( /^#\/.+/ );
+
+	await page.reload();
+
+	await expect( page.getByLabel( 'Wheel items' ) ).toHaveValue( items.join( '\n' ) );
+} );
+
 test( 'reset restores the default items and clears the result', async ( { page } ) => {
 	await page.getByLabel( 'Wheel items' ).fill( 'Apple\nBanana\nCherry' );
+	await page.getByLabel( 'Wheel items' ).blur();
+	await expect.poll( () => new URL( page.url() ).hash ).toMatch( /^#\/.+/ );
 	await page.getByRole( 'button', { name: 'Spin' } ).click();
 	await expect( page.locator( '#result' ) ).toContainText( 'Selected:' );
 
@@ -122,4 +137,5 @@ test( 'reset restores the default items and clears the result', async ( { page }
 
 	await expect( page.getByLabel( 'Wheel items' ) ).toHaveValue( defaultItems.join( '\n' ) );
 	await expect( page.locator( '#result' ) ).toHaveText( '' );
+	await expect.poll( () => new URL( page.url() ).hash ).toBe( '' );
 } );

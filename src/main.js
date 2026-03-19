@@ -13,6 +13,7 @@ import { getElements } from './dom.js';
 import { formatItems, parseItems } from './items.js';
 import { createSpinner } from './spin.js';
 import { createState } from './state.js';
+import { getItemsFromHash, syncItemsInUrl } from './url-state.js';
 import { createWheelRenderer } from './wheel.js';
 
 const elements = getElements();
@@ -33,8 +34,13 @@ function getItems() {
 	return parseItems( elements.textarea.value );
 }
 
+function syncUrlState() {
+	syncItemsInUrl( getItems(), { defaultItems: DEFAULT_ITEMS } );
+}
+
 function updateWheel() {
 	state.items = getItems();
+	syncItemsInUrl( state.items, { defaultItems: DEFAULT_ITEMS } );
 	setResult( '' );
 	state.lastPointerIndex = state.items.length ?
 		renderer.getPointerIndex( state.items, state.rotation ) :
@@ -63,9 +69,15 @@ const spinner = createSpinner( {
 	selectedPrefix: TEXT.selectedPrefix
 } );
 
-elements.updateBtn.addEventListener( 'click', updateWheel );
-elements.spinBtn.addEventListener( 'click', spinner.spin );
-elements.resetBtn.addEventListener( 'click', resetWheel );
+function spinWheel() {
+	syncUrlState();
+	spinner.spin();
+}
 
-elements.textarea.value = formatItems( DEFAULT_ITEMS );
+elements.updateBtn.addEventListener( 'click', updateWheel );
+elements.spinBtn.addEventListener( 'click', spinWheel );
+elements.resetBtn.addEventListener( 'click', resetWheel );
+elements.textarea.addEventListener( 'blur', syncUrlState );
+
+elements.textarea.value = formatItems( getItemsFromHash( window.location.hash ) || DEFAULT_ITEMS );
 updateWheel();
