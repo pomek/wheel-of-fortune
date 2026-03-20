@@ -3,6 +3,8 @@ import { expect, test } from '@playwright/test';
 const defaultItems = [ 'Pizza', 'Burger', 'Sushi', 'Taco', 'Kebab', 'Ramen' ];
 const defaultStateStorageKey = 'wheel-of-fortune:state:#default';
 const mutedAudioStorageKey = 'wheel-of-fortune:audio:muted';
+const sharedHash = '#/LIIQUMAKYNLZBlMAxJkBaQ';
+const sharedHashItems = [ 'MB', 'MP', 'KP', 'PS', 'FS', 'PZ' ];
 
 async function stubBrowserApis( page ) {
 	await page.addInitScript( () => {
@@ -234,6 +236,22 @@ test( 'persists custom items in the shareable URL', async ( { page } ) => {
 	await page.reload();
 
 	await expect( page.getByLabel( 'Wheel items' ) ).toHaveValue( items.join( '\n' ) );
+} );
+
+test( 'updates the wheel when the URL hash changes without reload', async ( { page } ) => {
+	await page.evaluate( hash => {
+		window.location.hash = hash;
+	}, sharedHash );
+
+	await expect.poll( () => new URL( page.url() ).hash ).toBe( sharedHash );
+	await expect( page.getByLabel( 'Wheel items' ) ).toHaveValue( sharedHashItems.join( '\n' ) );
+
+	await page.getByRole( 'button', { name: 'Spin' } ).click();
+	await expect( page.locator( '#result' ) ).toContainText( 'Selected:' );
+
+	const winner = ( await page.locator( '#result' ).textContent() ).replace( 'Selected: ', '' );
+
+	expect( sharedHashItems ).toContain( winner );
 } );
 
 test( 'reset restores the default items and clears the result', async ( { page } ) => {

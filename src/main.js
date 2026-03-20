@@ -34,6 +34,10 @@ let activeToastTimeout = null;
 let winnerBlinkInterval = null;
 let winnerBlinkTimeout = null;
 
+function applyItemsFromHash() {
+	elements.textarea.value = formatItems( getItemsFromHash( window.location.hash ) || DEFAULT_ITEMS );
+}
+
 function loadMutedPreference( {
 	storage = window.localStorage
 } = {} ) {
@@ -271,6 +275,12 @@ function handleTextareaKeydown( event ) {
 	}, 0 );
 }
 
+function handleHashChange() {
+	spinner.stop();
+	applyItemsFromHash();
+	updateWheel();
+}
+
 elements.spinBtn.addEventListener( 'click', spinWheel );
 elements.resetBtn.addEventListener( 'click', resetWheel );
 elements.soundBtn.addEventListener( 'click', toggleSound );
@@ -278,7 +288,8 @@ elements.textarea.addEventListener( 'focus', spinner.stop );
 elements.textarea.addEventListener( 'blur', handleTextareaBlur );
 elements.textarea.addEventListener( 'keydown', handleTextareaKeydown );
 window.addEventListener( 'keydown', handleWindowKeydown );
+window.addEventListener( 'hashchange', handleHashChange );
 
-elements.textarea.value = formatItems( getItemsFromHash( window.location.hash ) || DEFAULT_ITEMS );
+applyItemsFromHash();
 updateSoundButton();
 updateWheel();
