@@ -8,6 +8,7 @@ function createContext() {
 		beginPath: vi.fn(),
 		arc: vi.fn(),
 		fill: vi.fn(),
+		stroke: vi.fn(),
 		moveTo: vi.fn(),
 		closePath: vi.fn(),
 		save: vi.fn(),
@@ -16,6 +17,10 @@ function createContext() {
 		fillText: vi.fn(),
 		restore: vi.fn(),
 		fillStyle: '',
+		strokeStyle: '',
+		lineWidth: 0,
+		shadowColor: '',
+		shadowBlur: 0,
 		font: '',
 		textAlign: '',
 		textBaseline: ''
@@ -51,6 +56,37 @@ describe( 'wheel', () => {
 
 		expect( ctx.fillText ).toHaveBeenCalledWith( 'Very long pizza to...', 230, 0 );
 		expect( ctx.fillText ).toHaveBeenCalledWith( 'Burger', 230, 0 );
+	} );
+
+	it( 'draws a highlighted fill for the active segment', () => {
+		const ctx = createContext();
+		const renderer = createWheelRenderer( {
+			canvas: { width: 520 },
+			ctx,
+			colors: [ '#111111', '#222222', '#333333' ],
+			emptyText: 'Add items'
+		} );
+
+		renderer.draw( [ 'A', 'B', 'C' ], 0, { activeIndex: 1 } );
+
+		expect( ctx.fill ).toHaveBeenCalledTimes( 6 );
+	} );
+
+	it( 'can suppress active highlight rendering', () => {
+		const ctx = createContext();
+		const renderer = createWheelRenderer( {
+			canvas: { width: 520 },
+			ctx,
+			colors: [ '#111111', '#222222', '#333333' ],
+			emptyText: 'Add items'
+		} );
+
+		renderer.draw( [ 'A', 'B', 'C' ], 0, {
+			activeIndex: 1,
+			showActiveHighlight: false
+		} );
+
+		expect( ctx.fill ).toHaveBeenCalledTimes( 5 );
 	} );
 
 	it( 'calculates the pointer index and winner from rotation', () => {

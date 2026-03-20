@@ -26,9 +26,84 @@ const renderer = createWheelRenderer( {
 	colors: COLORS,
 	emptyText: TEXT.emptyWheel
 } );
+let activeToastTimeout = null;
+let winnerBlinkInterval = null;
+let winnerBlinkTimeout = null;
 
 function setResult( message ) {
 	elements.resultEl.textContent = message;
+}
+
+function hideToast() {
+	if ( activeToastTimeout !== null ) {
+		window.clearTimeout( activeToastTimeout );
+		activeToastTimeout = null;
+	}
+
+	elements.toastEl.classList.remove( 'visible' );
+	elements.toastEl.textContent = '';
+}
+
+function showToast( message ) {
+	if ( !message ) {
+		return;
+	}
+
+	if ( activeToastTimeout !== null ) {
+		window.clearTimeout( activeToastTimeout );
+	}
+
+	elements.toastEl.textContent = message;
+	elements.toastEl.classList.add( 'visible' );
+	activeToastTimeout = window.setTimeout( () => {
+		elements.toastEl.classList.remove( 'visible' );
+		activeToastTimeout = null;
+	}, 2600 );
+}
+
+function drawWheel() {
+	renderer.draw( state.items, state.rotation, {
+		activeIndex: state.activeWinnerIndex,
+		showActiveHighlight: state.isWinnerHighlightVisible
+	} );
+}
+
+function stopWinnerBlink( { redraw = false } = {} ) {
+	if ( winnerBlinkInterval !== null ) {
+		window.clearInterval( winnerBlinkInterval );
+		winnerBlinkInterval = null;
+	}
+
+	if ( winnerBlinkTimeout !== null ) {
+		window.clearTimeout( winnerBlinkTimeout );
+		winnerBlinkTimeout = null;
+	}
+
+	state.isWinnerHighlightVisible = true;
+
+	if ( redraw ) {
+		drawWheel();
+	}
+}
+
+function startWinnerBlink() {
+	if ( state.activeWinnerIndex === null ) {
+		return;
+	}
+
+	stopWinnerBlink();
+	state.isWinnerHighlightVisible = true;
+	drawWheel();
+
+	winnerBlinkInterval = window.setInterval( () => {
+		state.isWinnerHighlightVisible = !state.isWinnerHighlightVisible;
+		drawWheel();
+	}, 220 );
+
+	winnerBlinkTimeout = window.setTimeout( () => {
+		stopWinnerBlink();
+		drawWheel();
+	}, 3000 );
 }
 
 function getItems() {
@@ -54,11 +129,14 @@ function updateWheel( { restoreState = true } = {} ) {
 		state.recentWinnerIndexes = [];
 	}
 
+	stopWinnerBlink();
+	state.activeWinnerIndex = null;
 	setResult( '' );
+	hideToast();
 	state.lastPointerIndex = state.items.length ?
 		renderer.getPointerIndex( state.items, state.rotation ) :
 		null;
-	renderer.draw( state.items, state.rotation );
+	drawWheel();
 }
 
 const spinner = createSpinner( {
@@ -73,17 +151,23 @@ const spinner = createSpinner( {
 	maxFullSpins: MAX_FULL_SPINS,
 	minItemsMessage: TEXT.minItems,
 	selectedPrefix: TEXT.selectedPrefix,
+	onWinnerSelected: winner => {
+		showToast( `${ TEXT.selectedPrefix }${ winner }` );
+		startWinnerBlink();
+	},
 	persistState: persistedState => savePersistedState( persistedState )
 } );
 
 function resetWheel() {
 	const previousHash = window.location.hash;
 
+	stopWinnerBlink();
 	spinner.stop();
 	elements.textarea.value = formatItems( DEFAULT_ITEMS );
 	clearPersistedState( { hash: previousHash } );
 	clearPersistedState( { hash: '' } );
 	setResult( '' );
+	hideToast();
 	updateWheel( { restoreState: false } );
 }
 
@@ -91,10 +175,12 @@ function spinWheel() {
 	state.items = getItems();
 	syncItemsInUrl( state.items, { defaultItems: DEFAULT_ITEMS } );
 	restorePersistedState();
+	stopWinnerBlink();
+	state.activeWinnerIndex = null;
 	state.lastPointerIndex = state.items.length ?
 		renderer.getPointerIndex( state.items, state.rotation ) :
 		null;
-	renderer.draw( state.items, state.rotation );
+	drawWheel();
 	spinner.spin();
 }
 

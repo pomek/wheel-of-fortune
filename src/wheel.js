@@ -1,5 +1,8 @@
 export function createWheelRenderer( { canvas, ctx, colors, emptyText } ) {
-	function draw( list, currentRotation = 0 ) {
+	function draw( list, currentRotation = 0, {
+		activeIndex = null,
+		showActiveHighlight = true
+	} = {} ) {
 		const size = canvas.width;
 		const center = size / 2;
 		const radius = center - 10;
@@ -32,6 +35,17 @@ export function createWheelRenderer( { canvas, ctx, colors, emptyText } ) {
 			ctx.closePath();
 			ctx.fillStyle = colors[ i % colors.length ];
 			ctx.fill();
+
+			if ( showActiveHighlight && i === activeIndex ) {
+				ctx.save();
+				ctx.beginPath();
+				ctx.moveTo( center, center );
+				ctx.arc( center, center, radius, start, end );
+				ctx.closePath();
+				ctx.fillStyle = 'rgba(255, 255, 255, 0.22)';
+				ctx.fill();
+				ctx.restore();
+			}
 
 			ctx.save();
 			ctx.translate( center, center );

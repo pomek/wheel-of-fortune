@@ -19,6 +19,7 @@ describe( 'spin', () => {
 				items: [],
 				rotation: 0,
 				isSpinning: false,
+				activeWinnerIndex: null,
 				lastPointerIndex: null,
 				recentWinnerIndexes: []
 			},
@@ -53,6 +54,7 @@ describe( 'spin', () => {
 			items: [],
 			rotation: 0,
 			isSpinning: false,
+			activeWinnerIndex: null,
 			lastPointerIndex: null,
 			recentWinnerIndexes: []
 		};
@@ -68,6 +70,7 @@ describe( 'spin', () => {
 		const ensureAudioContext = vi.fn();
 		const playTick = vi.fn();
 		const playBell = vi.fn();
+		const onWinnerSelected = vi.fn();
 
 		vi.spyOn( Math, 'random' ).mockReturnValue( 0 );
 		vi.stubGlobal( 'requestAnimationFrame', callback => {
@@ -96,6 +99,7 @@ describe( 'spin', () => {
 			maxFullSpins: 10,
 			minItemsMessage: 'Add at least 2 items.',
 			selectedPrefix: 'Selected: ',
+			onWinnerSelected,
 			persistState
 		} );
 
@@ -108,7 +112,9 @@ describe( 'spin', () => {
 		expect( playBell ).toHaveBeenCalledOnce();
 		expect( setResult ).toHaveBeenNthCalledWith( 1, '' );
 		expect( setResult ).toHaveBeenNthCalledWith( 2, 'Selected: Pizza' );
+		expect( onWinnerSelected ).toHaveBeenCalledWith( 'Pizza' );
 		expect( state.isSpinning ).toBe( false );
+		expect( state.activeWinnerIndex ).toBe( 0 );
 		expect( state.recentWinnerIndexes ).toEqual( [ 0 ] );
 		expect( state.rotation ).toBe( 0 );
 		expect( persistState ).toHaveBeenCalledWith( {
@@ -122,6 +128,7 @@ describe( 'spin', () => {
 			items: [],
 			rotation: Math.PI / 3,
 			isSpinning: false,
+			activeWinnerIndex: 1,
 			lastPointerIndex: null,
 			recentWinnerIndexes: [ 1, 0 ]
 		};
@@ -173,6 +180,7 @@ describe( 'spin', () => {
 		expect( cancelAnimationFrame ).toHaveBeenCalledWith( 2 );
 		expect( spinBtn.disabled ).toBe( false );
 		expect( state.isSpinning ).toBe( false );
+		expect( state.activeWinnerIndex ).toBeNull();
 		expect( state.rotation ).toBeCloseTo( Math.PI / 3, 10 );
 		expect( state.recentWinnerIndexes ).toEqual( [ 1, 0 ] );
 		expect( setResult ).toHaveBeenNthCalledWith( 1, '' );
@@ -187,6 +195,7 @@ describe( 'spin', () => {
 			items: [],
 			rotation: 0,
 			isSpinning: false,
+			activeWinnerIndex: null,
 			lastPointerIndex: null,
 			recentWinnerIndexes: [ 0, 1 ]
 		};
@@ -239,6 +248,7 @@ describe( 'spin', () => {
 			items: [],
 			rotation: 0,
 			isSpinning: false,
+			activeWinnerIndex: null,
 			lastPointerIndex: null,
 			recentWinnerIndexes: [ 1, 0 ]
 		};

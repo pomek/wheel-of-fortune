@@ -17,6 +17,7 @@ export function getElements() {
 	const spinBtn = getRequiredElement( 'spinBtn', HTMLButtonElement );
 	const resetBtn = getRequiredElement( 'resetBtn', HTMLButtonElement );
 	const resultEl = getRequiredElement( 'result', HTMLElement );
+	const toastEl = getRequiredElement( 'toast', HTMLElement );
 	const canvas = getRequiredElement( 'wheel', HTMLCanvasElement );
 	const ctx = canvas.getContext( '2d' );
 
@@ -29,6 +30,7 @@ export function getElements() {
 		spinBtn,
 		resetBtn,
 		resultEl,
+		toastEl,
 		canvas,
 		ctx
 	};

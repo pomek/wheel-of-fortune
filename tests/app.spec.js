@@ -34,6 +34,7 @@ test( 'loads the app with default controls', async ( { page } ) => {
 	await expect( page.locator( '#result' ) ).toHaveAttribute( 'role', 'status' );
 	await expect( page.locator( '#result' ) ).toHaveAttribute( 'aria-live', 'polite' );
 	await expect( page.locator( '.pointer' ) ).toHaveAttribute( 'aria-hidden', 'true' );
+	await expect( page.locator( '#toast' ) ).toHaveAttribute( 'aria-hidden', 'true' );
 } );
 
 test( 'shows validation when there are fewer than two items', async ( { page } ) => {
@@ -51,6 +52,7 @@ test( 'spins the wheel and shows a selected item', async ( { page } ) => {
 	await page.getByRole( 'button', { name: 'Spin' } ).click();
 
 	await expect( page.locator( '#result' ) ).toContainText( 'Selected:' );
+	await expect( page.locator( '#toast' ) ).toContainText( 'Selected:' );
 
 	const resultText = await page.locator( '#result' ).textContent();
 	expect( items ).toContain( resultText.replace( 'Selected: ', '' ) );
@@ -119,6 +121,7 @@ test( 'reset stops an active spin before it can finish', async ( { page } ) => {
 	await expect( spinButton ).toBeEnabled();
 	await expect( page.getByLabel( 'Wheel items' ) ).toHaveValue( defaultItems.join( '\n' ) );
 	await expect( result ).toHaveText( '' );
+	await expect( page.locator( '#toast' ) ).toHaveText( '' );
 
 	await page.waitForTimeout( 250 );
 	await expect( result ).toHaveText( '' );

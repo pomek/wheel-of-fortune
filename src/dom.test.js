@@ -14,6 +14,7 @@ describe( 'dom', () => {
             <button id="spinBtn"></button>
             <button id="resetBtn"></button>
             <div id="result"></div>
+            <div id="toast"></div>
             <canvas id="wheel"></canvas>
         `;
 
@@ -34,6 +35,7 @@ describe( 'dom', () => {
 		expect( elements.spinBtn.id ).toBe( 'spinBtn' );
 		expect( elements.resetBtn.id ).toBe( 'resetBtn' );
 		expect( elements.resultEl.id ).toBe( 'result' );
+		expect( elements.toastEl.id ).toBe( 'toast' );
 		expect( elements.canvas.id ).toBe( 'wheel' );
 		expect( elements.ctx ).toBe( ctx );
 		expect( getContextSpy ).toHaveBeenCalledWith( '2d' );

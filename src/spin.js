@@ -54,6 +54,7 @@ export function createSpinner( {
 	maxFullSpins,
 	minItemsMessage,
 	selectedPrefix,
+	onWinnerSelected = () => {},
 	persistState = () => {}
 } ) {
 	let activeAnimationFrame = null;
@@ -75,12 +76,15 @@ export function createSpinner( {
 		state.rotation = normalizeRotation( activeSpinStartRotation ?? state.rotation );
 		activeSpinStartRotation = null;
 		state.isSpinning = false;
+		state.activeWinnerIndex = null;
 		spinBtn.disabled = false;
 		setResult( '' );
 		state.lastPointerIndex = state.items.length ?
 			renderer.getPointerIndex( state.items, state.rotation ) :
 			null;
-		renderer.draw( state.items, state.rotation );
+		renderer.draw( state.items, state.rotation, {
+			activeIndex: state.activeWinnerIndex
+		} );
 		persistState( {
 			rotation: state.rotation,
 			recentWinnerIndexes: state.recentWinnerIndexes
@@ -101,6 +105,7 @@ export function createSpinner( {
 		audio.ensureAudioContext();
 
 		state.isSpinning = true;
+		state.activeWinnerIndex = null;
 		spinBtn.disabled = true;
 		setResult( '' );
 
@@ -159,7 +164,9 @@ export function createSpinner( {
 			}
 
 			state.rotation = baseRotation + wobble;
-			renderer.draw( state.items, state.rotation );
+			renderer.draw( state.items, state.rotation, {
+				activeIndex: state.activeWinnerIndex
+			} );
 
 			const currentPointerIndex = renderer.getPointerIndex( state.items, state.rotation );
 			if ( currentPointerIndex !== state.lastPointerIndex ) {
@@ -177,9 +184,14 @@ export function createSpinner( {
 			activeSpinToken = null;
 			activeSpinStartRotation = null;
 			state.rotation = normalizeRotation( targetRotation );
+			state.activeWinnerIndex = winnerIndex;
 			state.recentWinnerIndexes = getRecentWinnerIndexes( state.recentWinnerIndexes, winnerIndex );
-			renderer.draw( state.items, state.rotation );
-			setResult( `${ selectedPrefix }${ state.items[ winnerIndex ] }` );
+			renderer.draw( state.items, state.rotation, {
+				activeIndex: state.activeWinnerIndex
+			} );
+			const winner = state.items[ winnerIndex ];
+			setResult( `${ selectedPrefix }${ winner }` );
+			onWinnerSelected( winner );
 			audio.playBell();
 			state.isSpinning = false;
 			spinBtn.disabled = false;
