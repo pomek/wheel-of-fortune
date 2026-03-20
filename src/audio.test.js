@@ -93,4 +93,34 @@ describe( 'audio', () => {
 
 		await instances[ 2 ].play.mock.results[ 0 ].value;
 	} );
+
+	it( 'supports toggling the muted state', () => {
+		const { FakeAudio } = createFakeAudioClass();
+		const player = createAudioPlayer( {
+			AudioClass: FakeAudio,
+			clickUrl: '/click.mp3',
+			bellUrl: '/bell.mp3'
+		} );
+
+		expect( player.isMuted() ).toBe( false );
+		expect( player.toggleMuted() ).toBe( true );
+		expect( player.isMuted() ).toBe( true );
+		expect( player.setMuted( false ) ).toBe( false );
+		expect( player.isMuted() ).toBe( false );
+	} );
+
+	it( 'does not play sounds when muted', () => {
+		const { FakeAudio, instances } = createFakeAudioClass();
+		const player = createAudioPlayer( {
+			AudioClass: FakeAudio,
+			clickUrl: '/click.mp3',
+			bellUrl: '/bell.mp3',
+			muted: true
+		} );
+
+		player.playTick( 1 );
+		player.playBell();
+
+		expect( instances ).toHaveLength( 2 );
+	} );
 } );

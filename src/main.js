@@ -17,9 +17,13 @@ import { createState } from './state.js';
 import { getItemsFromHash, syncItemsInUrl } from './url-state.js';
 import { createWheelRenderer } from './wheel.js';
 
+const SOUND_MUTED_STORAGE_KEY = 'wheel-of-fortune:audio:muted';
+
 const elements = getElements();
 const state = createState();
-const audio = createAudioPlayer();
+const audio = createAudioPlayer( {
+	muted: loadMutedPreference()
+} );
 const renderer = createWheelRenderer( {
 	canvas: elements.canvas,
 	ctx: elements.ctx,
@@ -29,6 +33,39 @@ const renderer = createWheelRenderer( {
 let activeToastTimeout = null;
 let winnerBlinkInterval = null;
 let winnerBlinkTimeout = null;
+
+function loadMutedPreference( {
+	storage = window.localStorage
+} = {} ) {
+	if ( !storage ) {
+		return false;
+	}
+
+	try {
+		return storage.getItem( SOUND_MUTED_STORAGE_KEY ) === '1';
+	} catch {
+		return false;
+	}
+}
+
+function saveMutedPreference( muted, {
+	storage = window.localStorage
+} = {} ) {
+	if ( !storage ) {
+		return;
+	}
+
+	try {
+		if ( muted ) {
+			storage.setItem( SOUND_MUTED_STORAGE_KEY, '1' );
+			return;
+		}
+
+		storage.removeItem( SOUND_MUTED_STORAGE_KEY );
+	} catch {
+		// Ignore storage failures.
+	}
+}
 
 function setResult( message ) {
 	elements.resultEl.textContent = message;
@@ -59,6 +96,22 @@ function showToast( message ) {
 		elements.toastEl.classList.remove( 'visible' );
 		activeToastTimeout = null;
 	}, 2600 );
+}
+
+function updateSoundButton() {
+	const muted = audio.isMuted();
+
+	elements.soundBtn.textContent = muted ? '🔇' : '🔊';
+	elements.soundBtn.setAttribute( 'aria-pressed', String( muted ) );
+	elements.soundBtn.setAttribute( 'aria-label', muted ? 'Unmute sounds' : 'Mute sounds' );
+	elements.soundBtn.title = muted ? 'Unmute sounds' : 'Mute sounds';
+}
+
+function toggleSound() {
+	const muted = audio.toggleMuted();
+
+	saveMutedPreference( muted );
+	updateSoundButton();
 }
 
 function drawWheel() {
@@ -220,10 +273,12 @@ function handleTextareaKeydown( event ) {
 
 elements.spinBtn.addEventListener( 'click', spinWheel );
 elements.resetBtn.addEventListener( 'click', resetWheel );
+elements.soundBtn.addEventListener( 'click', toggleSound );
 elements.textarea.addEventListener( 'focus', spinner.stop );
 elements.textarea.addEventListener( 'blur', handleTextareaBlur );
 elements.textarea.addEventListener( 'keydown', handleTextareaKeydown );
 window.addEventListener( 'keydown', handleWindowKeydown );
 
 elements.textarea.value = formatItems( getItemsFromHash( window.location.hash ) || DEFAULT_ITEMS );
+updateSoundButton();
 updateWheel();

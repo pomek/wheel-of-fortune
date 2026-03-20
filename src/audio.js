@@ -36,11 +36,27 @@ function playSound( AudioClass, template, { volume, playbackRate = 1 } = {} ) {
 export function createAudioPlayer( {
 	AudioClass = typeof window !== 'undefined' ? window.Audio : null,
 	clickUrl = clickSoundUrl,
-	bellUrl = bellRingUrl
+	bellUrl = bellRingUrl,
+	muted = false
 } = {} ) {
 	const clickTemplate = createSoundTemplate( AudioClass, clickUrl, 0.18 );
 	const bellTemplate = createSoundTemplate( AudioClass, bellUrl, 0.25 );
 	let isPrepared = false;
+	let isMuted = Boolean( muted );
+
+	function setMuted( nextMuted ) {
+		isMuted = Boolean( nextMuted );
+
+		return isMuted;
+	}
+
+	function toggleMuted() {
+		return setMuted( !isMuted );
+	}
+
+	function getIsMuted() {
+		return isMuted;
+	}
 
 	function ensureAudioContext() {
 		if ( !clickTemplate || !bellTemplate ) {
@@ -57,6 +73,10 @@ export function createAudioPlayer( {
 	}
 
 	function playTick( intensity = 1 ) {
+		if ( isMuted ) {
+			return;
+		}
+
 		const clamped = Math.max( 0.35, Math.min( 1, intensity ) );
 
 		playSound( AudioClass, clickTemplate, {
@@ -66,11 +86,18 @@ export function createAudioPlayer( {
 	}
 
 	function playBell() {
+		if ( isMuted ) {
+			return;
+		}
+
 		playSound( AudioClass, bellTemplate, { volume: 0.25 } );
 	}
 
 	return {
 		ensureAudioContext,
+		setMuted,
+		toggleMuted,
+		isMuted: getIsMuted,
 		playTick,
 		playBell
 	};

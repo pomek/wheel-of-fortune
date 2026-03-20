@@ -16,6 +16,7 @@ export function getElements() {
 	const textarea = getRequiredElement( 'items', HTMLTextAreaElement );
 	const spinBtn = getRequiredElement( 'spinBtn', HTMLButtonElement );
 	const resetBtn = getRequiredElement( 'resetBtn', HTMLButtonElement );
+	const soundBtn = getRequiredElement( 'soundBtn', HTMLButtonElement );
 	const resultEl = getRequiredElement( 'result', HTMLElement );
 	const toastEl = getRequiredElement( 'toast', HTMLElement );
 	const canvas = getRequiredElement( 'wheel', HTMLCanvasElement );
@@ -29,6 +30,7 @@ export function getElements() {
 		textarea,
 		spinBtn,
 		resetBtn,
+		soundBtn,
 		resultEl,
 		toastEl,
 		canvas,

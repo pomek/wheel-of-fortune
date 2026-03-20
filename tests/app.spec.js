@@ -2,6 +2,7 @@ import { expect, test } from '@playwright/test';
 
 const defaultItems = [ 'Pizza', 'Burger', 'Sushi', 'Taco', 'Kebab', 'Ramen' ];
 const defaultStateStorageKey = 'wheel-of-fortune:state:#default';
+const mutedAudioStorageKey = 'wheel-of-fortune:audio:muted';
 
 async function stubBrowserApis( page ) {
 	await page.addInitScript( () => {
@@ -25,6 +26,7 @@ test( 'loads the app with default controls', async ( { page } ) => {
 	await expect( page.getByRole( 'heading', { name: 'Wheel of Fortune' } ) ).toBeVisible();
 	await expect( page.getByRole( 'button', { name: 'Spin' } ) ).toBeVisible();
 	await expect( page.getByRole( 'button', { name: 'Reset' } ) ).toBeVisible();
+	await expect( page.getByRole( 'button', { name: 'Mute sounds' } ) ).toBeVisible();
 	const textarea = page.getByLabel( 'Wheel items' );
 
 	await expect( textarea ).toHaveValue( defaultItems.join( '\n' ) );
@@ -35,6 +37,24 @@ test( 'loads the app with default controls', async ( { page } ) => {
 	await expect( page.locator( '#result' ) ).toHaveAttribute( 'aria-live', 'polite' );
 	await expect( page.locator( '.pointer' ) ).toHaveAttribute( 'aria-hidden', 'true' );
 	await expect( page.locator( '#toast' ) ).toHaveAttribute( 'aria-hidden', 'true' );
+	await expect( page.getByRole( 'button', { name: 'Mute sounds' } ) ).toHaveAttribute( 'aria-pressed', 'false' );
+} );
+
+test( 'persists sound mute preference in local storage', async ( { page } ) => {
+	const muteButton = page.getByRole( 'button', { name: 'Mute sounds' } );
+
+	await muteButton.click();
+	await expect( page.getByRole( 'button', { name: 'Unmute sounds' } ) ).toHaveAttribute( 'aria-pressed', 'true' );
+	await expect.poll( async () => page.evaluate( key => window.localStorage.getItem( key ), mutedAudioStorageKey ) ).toBe( '1' );
+
+	await page.reload();
+
+	const unmuteButton = page.getByRole( 'button', { name: 'Unmute sounds' } );
+
+	await expect( unmuteButton ).toHaveAttribute( 'aria-pressed', 'true' );
+	await unmuteButton.click();
+	await expect( page.getByRole( 'button', { name: 'Mute sounds' } ) ).toHaveAttribute( 'aria-pressed', 'false' );
+	await expect.poll( async () => page.evaluate( key => window.localStorage.getItem( key ), mutedAudioStorageKey ) ).toBeNull();
 } );
 
 test( 'shows validation when there are fewer than two items', async ( { page } ) => {
