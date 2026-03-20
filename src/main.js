@@ -102,6 +102,7 @@ function startWinnerBlink() {
 
 	winnerBlinkTimeout = window.setTimeout( () => {
 		stopWinnerBlink();
+		state.activeWinnerIndex = null;
 		drawWheel();
 	}, 3000 );
 }
