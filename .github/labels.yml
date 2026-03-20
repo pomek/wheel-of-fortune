@@ -1,0 +1,31 @@
+- name: resolution:duplicate
+  color: "444444"
+  description: "This issue already exists elsewhere."
+
+- name: type:bug
+  color: "d73a4a"
+  description: "Something is broken and needs a fix"
+
+- name: type:enhancement
+  color: "84b6eb"
+  description: "Improvement to existing behavior"
+
+- name: resolution:invalid
+  color: "444444"
+  description: "This issue is not actionable."
+
+- name: resolution:wontfix
+  color: "444444"
+  description: "This issue is acknowledged but not planned."
+
+- name: scope:app
+  color: "e6e6e6"
+  description: "Affects the main application."
+
+- name: severity:critical
+  color: "b60205"
+  description: "Critical impact such as outage, data loss, or security issue"
+
+- name: scope:tools
+  color: "e6e6e6"
+  description: "Affects development or support tools."

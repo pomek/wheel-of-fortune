@@ -1,0 +1,52 @@
+name: Feature request
+description: Suggest an improvement for the app or tooling
+title: "[Feature]: "
+labels:
+  - type:enhancement
+body:
+  - type: dropdown
+    id: scope
+    attributes:
+      label: Scope
+      description: Where should this improvement happen?
+      options:
+        - scope:app
+        - scope:tools
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem or opportunity
+      description: What is missing, frustrating, or worth improving?
+      placeholder: It is hard to ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: Describe the change you would like to see.
+      placeholder: I would like the app to ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Share other approaches or workarounds you have considered.
+      placeholder: Another option would be ...
+    validations:
+      required: false
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Add mockups, references, examples, or anything else that helps.
+      placeholder: Extra details, links, screenshots, or examples.
+    validations:
+      required: false

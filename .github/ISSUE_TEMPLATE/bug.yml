@@ -1,0 +1,103 @@
+name: Bug report
+description: Report a problem with the app or tooling
+title: "[Bug]: "
+labels:
+  - type:bug
+body:
+  - type: dropdown
+    id: scope
+    attributes:
+      label: Scope
+      description: Where does the problem happen?
+      options:
+        - scope:app
+        - scope:tools
+    validations:
+      required: true
+
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Severity
+      description: Mark critical only for outages, data loss, or security-impacting issues.
+      options:
+        - Not critical
+        - severity:critical
+    validations:
+      required: true
+
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: Briefly describe the bug.
+      placeholder: The wheel stops responding after clicking Spin.
+    validations:
+      required: true
+
+  - type: textarea
+    id: current-behavior
+    attributes:
+      label: Current behavior
+      description: What happens now?
+      placeholder: Describe the observed behavior.
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected-behavior
+    attributes:
+      label: Expected behavior
+      description: What should happen instead?
+      placeholder: Describe the expected behavior.
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: Provide clear steps so the issue can be reproduced.
+      placeholder: |
+        1. Open ...
+        2. Enter ...
+        3. Click ...
+        4. Observe ...
+    validations:
+      required: true
+
+  - type: input
+    id: browser
+    attributes:
+      label: Browser
+      description: Which browser and version are you using?
+      placeholder: Chrome 134, Safari 18, Firefox 136
+    validations:
+      required: false
+
+  - type: input
+    id: device
+    attributes:
+      label: Device / OS
+      description: Which device or operating system are you using?
+      placeholder: macOS 15, Windows 11, iPhone 16, Android 15
+    validations:
+      required: false
+
+  - type: input
+    id: page
+    attributes:
+      label: Page or URL
+      description: Link to the page where the issue appears, if relevant.
+      placeholder: https://...
+    validations:
+      required: false
+
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Screenshots or logs
+      description: Add screenshots, recordings, console output, or other helpful context.
+      placeholder: Paste anything useful here.
+    validations:
+      required: false
