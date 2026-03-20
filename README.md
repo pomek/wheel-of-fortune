@@ -37,6 +37,21 @@ Preview the built app:
 pnpm preview
 ```
 
+## Deploy to GitHub Pages
+
+Run the deploy script:
+
+```bash
+pnpm deploy:gh-pages
+```
+
+The script builds with a relative Vite base path (`./`) and force-pushes `dist` to the `gh-pages` branch.
+
+Optional environment variables:
+
+- `GH_PAGES_BASE` to override the Vite base path (for example `GH_PAGES_BASE=/wheel-of-fortune/`)
+- `GH_PAGES_COMMIT_MESSAGE` to override the deploy commit message
+
 ## Quality checks
 
 Run linting:
