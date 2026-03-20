@@ -9,12 +9,12 @@
 <div class="app">
     <section class="panel">
         <h1>Wheel of Fortune</h1>
-        <div class="sub">
+        <div class="sub" id="itemsHelp">
             Enter items one per line. The wheel updates when you press Enter or leave the field, and pressing Space spins it when the textarea is not focused.
         </div>
 
         <label for="items">Wheel items</label>
-        <textarea id="items">Pizza
+        <textarea id="items" aria-describedby="itemsHelp">Pizza
 Burger
 Sushi
 Taco
@@ -29,10 +29,10 @@ Ramen</textarea>
 
     <section class="panel wheel-wrap">
         <div class="wheel-box">
-            <canvas id="wheel" width="520" height="520"></canvas>
-            <div class="pointer"></div>
+            <canvas id="wheel" width="520" height="520" role="img" aria-label="Wheel of Fortune segments"></canvas>
+            <div class="pointer" aria-hidden="true"></div>
         </div>
-        <div id="result" class="result"></div>
+        <div id="result" class="result" role="status" aria-live="polite" aria-atomic="true"></div>
         <div class="hint">
             Focusing the textarea stops the current spin. The current list is stored in the URL, so you can bookmark or share it.
         </div>

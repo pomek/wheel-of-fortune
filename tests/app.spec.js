@@ -90,7 +90,15 @@ test( 'loads the app with default controls', async ( { page } ) => {
 	await expect( page.getByRole( 'heading', { name: 'Wheel of Fortune' } ) ).toBeVisible();
 	await expect( page.getByRole( 'button', { name: 'Spin' } ) ).toBeVisible();
 	await expect( page.getByRole( 'button', { name: 'Reset' } ) ).toBeVisible();
-	await expect( page.getByLabel( 'Wheel items' ) ).toHaveValue( defaultItems.join( '\n' ) );
+	const textarea = page.getByLabel( 'Wheel items' );
+
+	await expect( textarea ).toHaveValue( defaultItems.join( '\n' ) );
+	await expect( textarea ).toHaveAttribute( 'aria-describedby', 'itemsHelp' );
+	await expect( page.locator( '#wheel' ) ).toHaveAttribute( 'role', 'img' );
+	await expect( page.locator( '#wheel' ) ).toHaveAttribute( 'aria-label', 'Wheel of Fortune segments' );
+	await expect( page.locator( '#result' ) ).toHaveAttribute( 'role', 'status' );
+	await expect( page.locator( '#result' ) ).toHaveAttribute( 'aria-live', 'polite' );
+	await expect( page.locator( '.pointer' ) ).toHaveAttribute( 'aria-hidden', 'true' );
 } );
 
 test( 'shows validation when there are fewer than two items', async ( { page } ) => {
