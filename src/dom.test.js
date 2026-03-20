@@ -38,4 +38,16 @@ describe( 'dom', () => {
 		expect( elements.ctx ).toBe( ctx );
 		expect( getContextSpy ).toHaveBeenCalledWith( '2d' );
 	} );
+
+	it( 'throws when a required element is missing', () => {
+		document.getElementById( 'items' ).remove();
+
+		expect( () => getElements() ).toThrow( 'Missing required element: #items' );
+	} );
+
+	it( 'throws when the wheel canvas has no 2d context', () => {
+		getContextSpy.mockReturnValueOnce( null );
+
+		expect( () => getElements() ).toThrow( 'Canvas #wheel does not support a 2d context.' );
+	} );
 } );
