@@ -61,13 +61,6 @@ function updateWheel( { restoreState = true } = {} ) {
 	renderer.draw( state.items, state.rotation );
 }
 
-function resetWheel() {
-	elements.textarea.value = formatItems( DEFAULT_ITEMS );
-	clearPersistedState();
-	setResult( '' );
-	updateWheel( { restoreState: false } );
-}
-
 const spinner = createSpinner( {
 	state,
 	renderer,
@@ -82,6 +75,14 @@ const spinner = createSpinner( {
 	selectedPrefix: TEXT.selectedPrefix,
 	persistState: persistedState => savePersistedState( persistedState )
 } );
+
+function resetWheel() {
+	spinner.stop();
+	elements.textarea.value = formatItems( DEFAULT_ITEMS );
+	clearPersistedState();
+	setResult( '' );
+	updateWheel( { restoreState: false } );
+}
 
 function spinWheel() {
 	state.items = getItems();

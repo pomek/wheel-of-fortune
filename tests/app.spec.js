@@ -148,6 +148,38 @@ test( 'focusing the textarea stops an active spin', async ( { page } ) => {
 	await expect( textarea ).toBeFocused();
 } );
 
+test( 'reset stops an active spin before it can finish', async ( { page } ) => {
+	await page.evaluate( () => {
+		let frame = 0;
+
+		window.requestAnimationFrame = callback => {
+			return window.setTimeout( () => {
+				frame += 1;
+				callback( frame * 9000 );
+			}, 60 );
+		};
+
+		window.cancelAnimationFrame = handle => {
+			window.clearTimeout( handle );
+		};
+	} );
+
+	const spinButton = page.getByRole( 'button', { name: 'Spin' } );
+	const resetButton = page.getByRole( 'button', { name: 'Reset' } );
+	const result = page.locator( '#result' );
+
+	await spinButton.click();
+	await expect( spinButton ).toBeDisabled();
+
+	await resetButton.click();
+	await expect( spinButton ).toBeEnabled();
+	await expect( page.getByLabel( 'Wheel items' ) ).toHaveValue( defaultItems.join( '\n' ) );
+	await expect( result ).toHaveText( '' );
+
+	await page.waitForTimeout( 250 );
+	await expect( result ).toHaveText( '' );
+} );
+
 test( 'does not repeat the same winner after a reload for the same list', async ( { page } ) => {
 	const items = [ 'Alice', 'Bob', 'Carol' ];
 
