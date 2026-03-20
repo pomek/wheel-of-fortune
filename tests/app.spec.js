@@ -1,6 +1,7 @@
 import { expect, test } from '@playwright/test';
 
 const defaultItems = [ 'Pizza', 'Burger', 'Sushi', 'Taco', 'Kebab', 'Ramen' ];
+const defaultStateStorageKey = 'wheel-of-fortune:state:#default';
 
 async function stubBrowserApis( page ) {
 	await page.addInitScript( () => {
@@ -178,6 +179,25 @@ test( 'reset stops an active spin before it can finish', async ( { page } ) => {
 
 	await page.waitForTimeout( 250 );
 	await expect( result ).toHaveText( '' );
+} );
+
+test( 'reset clears persisted default state while using a custom list', async ( { page } ) => {
+	const textarea = page.getByLabel( 'Wheel items' );
+	const spinButton = page.getByRole( 'button', { name: 'Spin' } );
+
+	await spinButton.click();
+	await expect( page.locator( '#result' ) ).toContainText( 'Selected:' );
+	await expect.poll( async () => page.evaluate( key => window.localStorage.getItem( key ), defaultStateStorageKey ) ).not.toBeNull();
+
+	await textarea.fill( 'Alice\nBob\nCarol' );
+	await textarea.blur();
+	await expect.poll( () => new URL( page.url() ).hash ).toMatch( /^#\/.+/ );
+
+	await page.getByRole( 'button', { name: 'Reset' } ).click();
+
+	await expect.poll( () => new URL( page.url() ).hash ).toBe( '' );
+	await expect( textarea ).toHaveValue( defaultItems.join( '\n' ) );
+	await expect.poll( async () => page.evaluate( key => window.localStorage.getItem( key ), defaultStateStorageKey ) ).toBeNull();
 } );
 
 test( 'does not repeat the same winner after a reload for the same list', async ( { page } ) => {

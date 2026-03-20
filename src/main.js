@@ -77,9 +77,12 @@ const spinner = createSpinner( {
 } );
 
 function resetWheel() {
+	const previousHash = window.location.hash;
+
 	spinner.stop();
 	elements.textarea.value = formatItems( DEFAULT_ITEMS );
-	clearPersistedState();
+	clearPersistedState( { hash: previousHash } );
+	clearPersistedState( { hash: '' } );
 	setResult( '' );
 	updateWheel( { restoreState: false } );
 }
