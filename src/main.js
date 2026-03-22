@@ -18,6 +18,7 @@ import { getItemsFromHash, syncItemsInUrl } from './url-state.js';
 import { createWheelRenderer } from './wheel.js';
 
 const SOUND_MUTED_STORAGE_KEY = 'wheel-of-fortune:audio:muted';
+const TEXTAREA_UPDATE_DEBOUNCE = 180;
 
 const elements = getElements();
 const state = createState();
@@ -33,6 +34,7 @@ const renderer = createWheelRenderer( {
 let activeToastTimeout = null;
 let winnerBlinkInterval = null;
 let winnerBlinkTimeout = null;
+let scheduledWheelUpdate = null;
 
 function applyItemsFromHash() {
 	elements.textarea.value = formatItems( getItemsFromHash( window.location.hash ) || DEFAULT_ITEMS );
@@ -197,6 +199,26 @@ function updateWheel( { restoreState = true } = {} ) {
 	drawWheel();
 }
 
+function clearScheduledWheelUpdate() {
+	if ( scheduledWheelUpdate !== null ) {
+		window.clearTimeout( scheduledWheelUpdate );
+		scheduledWheelUpdate = null;
+	}
+}
+
+function scheduleWheelUpdate() {
+	clearScheduledWheelUpdate();
+	scheduledWheelUpdate = window.setTimeout( () => {
+		scheduledWheelUpdate = null;
+		updateWheel();
+	}, TEXTAREA_UPDATE_DEBOUNCE );
+}
+
+function flushScheduledWheelUpdate() {
+	clearScheduledWheelUpdate();
+	updateWheel();
+}
+
 const spinner = createSpinner( {
 	state,
 	renderer,
@@ -219,6 +241,7 @@ const spinner = createSpinner( {
 function resetWheel() {
 	const previousHash = window.location.hash;
 
+	clearScheduledWheelUpdate();
 	stopWinnerBlink();
 	spinner.stop();
 	elements.textarea.value = formatItems( DEFAULT_ITEMS );
@@ -230,6 +253,7 @@ function resetWheel() {
 }
 
 function spinWheel() {
+	clearScheduledWheelUpdate();
 	state.items = getItems();
 	syncItemsInUrl( state.items, { defaultItems: DEFAULT_ITEMS } );
 	restorePersistedState();
@@ -260,7 +284,7 @@ function handleWindowKeydown( event ) {
 }
 
 function handleTextareaBlur() {
-	updateWheel();
+	flushScheduledWheelUpdate();
 }
 
 function handleTextareaKeydown( event ) {
@@ -270,12 +294,17 @@ function handleTextareaKeydown( event ) {
 
 	window.setTimeout( () => {
 		if ( document.activeElement === elements.textarea ) {
-			updateWheel();
+			flushScheduledWheelUpdate();
 		}
 	}, 0 );
 }
 
+function handleTextareaInput() {
+	scheduleWheelUpdate();
+}
+
 function handleHashChange() {
+	clearScheduledWheelUpdate();
 	spinner.stop();
 	applyItemsFromHash();
 	updateWheel();
@@ -285,6 +314,7 @@ elements.spinBtn.addEventListener( 'click', spinWheel );
 elements.resetBtn.addEventListener( 'click', resetWheel );
 elements.soundBtn.addEventListener( 'click', toggleSound );
 elements.textarea.addEventListener( 'focus', spinner.stop );
+elements.textarea.addEventListener( 'input', handleTextareaInput );
 elements.textarea.addEventListener( 'blur', handleTextareaBlur );
 elements.textarea.addEventListener( 'keydown', handleTextareaKeydown );
 window.addEventListener( 'keydown', handleWindowKeydown );

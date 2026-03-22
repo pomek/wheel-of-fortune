@@ -225,6 +225,36 @@ test( 'pressing Enter in the textarea updates the wheel state', async ( { page }
 	await expect.poll( () => new URL( page.url() ).hash ).toMatch( /^#\/.+/ );
 } );
 
+test( 'typing updates the wheel state after a short debounce', async ( { page } ) => {
+	const textarea = page.getByLabel( 'Wheel items' );
+
+	await page.clock.install();
+
+	await textarea.focus();
+	await textarea.evaluate( element => {
+		element.value = 'Alice\nBob';
+		element.dispatchEvent( new Event( 'input', { bubbles: true } ) );
+	} );
+
+	await expect( textarea ).toBeFocused();
+	expect( new URL( page.url() ).hash ).toBe( '' );
+	await page.clock.runFor( 100 );
+	expect( new URL( page.url() ).hash ).toBe( '' );
+
+	await textarea.evaluate( element => {
+		element.value = 'Alice\nBob\nCarol';
+		element.dispatchEvent( new Event( 'input', { bubbles: true } ) );
+	} );
+
+	expect( new URL( page.url() ).hash ).toBe( '' );
+	await page.clock.runFor( 100 );
+	expect( new URL( page.url() ).hash ).toBe( '' );
+
+	await page.clock.runFor( 80 );
+
+	await expect.poll( () => new URL( page.url() ).hash ).toMatch( /^#\/.+/ );
+} );
+
 test( 'persists custom items in the shareable URL', async ( { page } ) => {
 	const items = [ 'Alice', 'Bob', 'Carol' ];
 
