@@ -29,7 +29,8 @@ describe( 'persisted-state', () => {
 
 		savePersistedState( {
 			rotation: Math.PI,
-			recentWinnerIndexes: [ 2, 0 ]
+			recentWinnerIndexes: [ 2, 0 ],
+			excludedIndexes: [ 1 ]
 		}, {
 			hash: '#/team-a',
 			storage
@@ -37,7 +38,8 @@ describe( 'persisted-state', () => {
 
 		savePersistedState( {
 			rotation: Math.PI / 2,
-			recentWinnerIndexes: [ 1 ]
+			recentWinnerIndexes: [ 1 ],
+			excludedIndexes: [ 0, 2 ]
 		}, {
 			hash: '#/team-b',
 			storage
@@ -45,11 +47,13 @@ describe( 'persisted-state', () => {
 
 		expect( loadPersistedState( { hash: '#/team-a', storage } ) ).toEqual( {
 			rotation: Math.PI,
-			recentWinnerIndexes: [ 2, 0 ]
+			recentWinnerIndexes: [ 2, 0 ],
+			excludedIndexes: [ 1 ]
 		} );
 		expect( loadPersistedState( { hash: '#/team-b', storage } ) ).toEqual( {
 			rotation: Math.PI / 2,
-			recentWinnerIndexes: [ 1 ]
+			recentWinnerIndexes: [ 1 ],
+			excludedIndexes: [ 0, 2 ]
 		} );
 	} );
 
@@ -63,7 +67,23 @@ describe( 'persisted-state', () => {
 
 		expect( loadPersistedState( { hash: '#/team-a', storage } ) ).toEqual( {
 			rotation: Math.PI,
-			recentWinnerIndexes: [ 2 ]
+			recentWinnerIndexes: [ 2 ],
+			excludedIndexes: []
+		} );
+	} );
+
+	it( 'ignores invalid or duplicate excluded indexes', () => {
+		const storage = createStorage();
+
+		storage.setItem( getPersistedStateStorageKey( '#/team-a' ), JSON.stringify( {
+			rotation: Math.PI,
+			excludedIndexes: [ 1, 1, 3, 'x', 2.5 ]
+		} ) );
+
+		expect( loadPersistedState( { hash: '#/team-a', storage } ) ).toEqual( {
+			rotation: Math.PI,
+			recentWinnerIndexes: [],
+			excludedIndexes: [ 1, 3 ]
 		} );
 	} );
 
@@ -74,11 +94,13 @@ describe( 'persisted-state', () => {
 
 		expect( loadPersistedState( { hash: '#/team-a', storage } ) ).toEqual( {
 			rotation: 0,
-			recentWinnerIndexes: []
+			recentWinnerIndexes: [],
+			excludedIndexes: []
 		} );
 		expect( loadPersistedState( { hash: '#/missing', storage } ) ).toEqual( {
 			rotation: 0,
-			recentWinnerIndexes: []
+			recentWinnerIndexes: [],
+			excludedIndexes: []
 		} );
 	} );
 
@@ -87,7 +109,8 @@ describe( 'persisted-state', () => {
 
 		savePersistedState( {
 			rotation: Math.PI,
-			recentWinnerIndexes: [ 2, 0 ]
+			recentWinnerIndexes: [ 2, 0 ],
+			excludedIndexes: [ 1 ]
 		}, {
 			hash: '#/team-a',
 			storage
@@ -97,7 +120,8 @@ describe( 'persisted-state', () => {
 
 		expect( loadPersistedState( { hash: '#/team-a', storage } ) ).toEqual( {
 			rotation: 0,
-			recentWinnerIndexes: []
+			recentWinnerIndexes: [],
+			excludedIndexes: []
 		} );
 	} );
 } );

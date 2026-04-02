@@ -16,14 +16,26 @@ function normalizeRotation( rotation ) {
 	return ( ( rotation % ( Math.PI * 2 ) ) + Math.PI * 2 ) % ( Math.PI * 2 );
 }
 
-function pickWinnerIndex( items, recentWinnerIndexes ) {
-	const blockedIndexes = new Set( recentWinnerIndexes.slice( 0, Math.max( 0, items.length - 1 ) ) );
-	const eligibleWinnerIndexes = items
+function getActiveIndexes( items, excludedIndexes = [] ) {
+	const excludedSet = new Set( excludedIndexes );
+
+	return items
 		.map( ( item, index ) => index )
-		.filter( index => !blockedIndexes.has( index ) );
+		.filter( index => !excludedSet.has( index ) );
+}
+
+function pickWinnerIndex( items, recentWinnerIndexes, excludedIndexes = [] ) {
+	const activeIndexes = getActiveIndexes( items, excludedIndexes );
+	const activeIndexSet = new Set( activeIndexes );
+	const blockedIndexes = new Set(
+		recentWinnerIndexes
+			.filter( index => activeIndexSet.has( index ) )
+			.slice( 0, Math.max( 0, activeIndexes.length - 1 ) )
+	);
+	const eligibleWinnerIndexes = activeIndexes.filter( index => !blockedIndexes.has( index ) );
 
 	if ( !eligibleWinnerIndexes.length ) {
-		return 0;
+		return activeIndexes[ 0 ] ?? 0;
 	}
 
 	return eligibleWinnerIndexes[ Math.floor( Math.random() * eligibleWinnerIndexes.length ) ];
@@ -87,15 +99,17 @@ export function createSpinner( {
 		} );
 		persistState( {
 			rotation: state.rotation,
-			recentWinnerIndexes: state.recentWinnerIndexes
+			recentWinnerIndexes: state.recentWinnerIndexes,
+			excludedIndexes: state.excludedIndexes
 		} );
 	}
 
 	function spin() {
 		state.items = getItems();
+		const activeItemCount = getActiveIndexes( state.items, state.excludedIndexes ).length;
 
-		if ( state.isSpinning || state.items.length < 2 ) {
-			if ( state.items.length < 2 ) {
+		if ( state.isSpinning || activeItemCount < 2 ) {
+			if ( activeItemCount < 2 ) {
 				setResult( minItemsMessage );
 			}
 
@@ -111,7 +125,7 @@ export function createSpinner( {
 
 		const spins = minFullSpins + Math.floor( Math.random() * ( maxFullSpins - minFullSpins + 1 ) );
 		const arc = ( Math.PI * 2 ) / state.items.length;
-		const winnerIndex = pickWinnerIndex( state.items, state.recentWinnerIndexes );
+		const winnerIndex = pickWinnerIndex( state.items, state.recentWinnerIndexes, state.excludedIndexes );
 		const winnerOffset = pickWinnerOffset();
 		const edgeDistance = Math.min( winnerOffset, 1 - winnerOffset );
 		const edgeRotationDirection = winnerOffset < 0.5 ? 1 : -1;
@@ -198,7 +212,8 @@ export function createSpinner( {
 			state.lastPointerIndex = renderer.getPointerIndex( state.items, state.rotation );
 			persistState( {
 				rotation: state.rotation,
-				recentWinnerIndexes: state.recentWinnerIndexes
+				recentWinnerIndexes: state.recentWinnerIndexes,
+				excludedIndexes: state.excludedIndexes
 			} );
 		}
 

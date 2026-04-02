@@ -17,6 +17,7 @@ describe( 'spin', () => {
 		const spinner = createSpinner( {
 			state: {
 				items: [],
+				excludedIndexes: [],
 				rotation: 0,
 				isSpinning: false,
 				activeWinnerIndex: null,
@@ -40,18 +41,19 @@ describe( 'spin', () => {
 			spinDuration: 100,
 			minFullSpins: 6,
 			maxFullSpins: 10,
-			minItemsMessage: 'Add at least 2 items.',
+			minItemsMessage: 'Keep at least 2 active items.',
 			selectedPrefix: 'Selected: '
 		} );
 
 		spinner.spin();
 
-		expect( setResult ).toHaveBeenCalledWith( 'Add at least 2 items.' );
+		expect( setResult ).toHaveBeenCalledWith( 'Keep at least 2 active items.' );
 	} );
 
 	it( 'animates the spin and reports the winner', () => {
 		const state = {
 			items: [],
+			excludedIndexes: [],
 			rotation: 0,
 			isSpinning: false,
 			activeWinnerIndex: null,
@@ -97,7 +99,7 @@ describe( 'spin', () => {
 			spinDuration: 100,
 			minFullSpins: 6,
 			maxFullSpins: 10,
-			minItemsMessage: 'Add at least 2 items.',
+			minItemsMessage: 'Keep at least 2 active items.',
 			selectedPrefix: 'Selected: ',
 			onWinnerSelected,
 			persistState
@@ -119,13 +121,15 @@ describe( 'spin', () => {
 		expect( state.rotation ).toBe( 0 );
 		expect( persistState ).toHaveBeenCalledWith( {
 			rotation: 0,
-			recentWinnerIndexes: [ 0 ]
+			recentWinnerIndexes: [ 0 ],
+			excludedIndexes: []
 		} );
 	} );
 
 	it( 'stops an active spin when requested', () => {
 		const state = {
 			items: [],
+			excludedIndexes: [],
 			rotation: Math.PI / 3,
 			isSpinning: false,
 			activeWinnerIndex: 1,
@@ -167,7 +171,7 @@ describe( 'spin', () => {
 			spinDuration: 100,
 			minFullSpins: 6,
 			maxFullSpins: 10,
-			minItemsMessage: 'Add at least 2 items.',
+			minItemsMessage: 'Keep at least 2 active items.',
 			selectedPrefix: 'Selected: ',
 			persistState
 		} );
@@ -188,11 +192,13 @@ describe( 'spin', () => {
 		expect( persistState ).toHaveBeenCalledTimes( 1 );
 		expect( persistState.mock.calls[ 0 ][ 0 ].rotation ).toBeCloseTo( Math.PI / 3, 10 );
 		expect( persistState.mock.calls[ 0 ][ 0 ].recentWinnerIndexes ).toEqual( [ 1, 0 ] );
+		expect( persistState.mock.calls[ 0 ][ 0 ].excludedIndexes ).toEqual( [] );
 	} );
 
 	it( 'avoids the last two winners when enough items exist', () => {
 		const state = {
 			items: [],
+			excludedIndexes: [],
 			rotation: 0,
 			isSpinning: false,
 			activeWinnerIndex: null,
@@ -233,7 +239,7 @@ describe( 'spin', () => {
 			spinDuration: 100,
 			minFullSpins: 6,
 			maxFullSpins: 10,
-			minItemsMessage: 'Add at least 2 items.',
+			minItemsMessage: 'Keep at least 2 active items.',
 			selectedPrefix: 'Selected: '
 		} );
 
@@ -246,6 +252,7 @@ describe( 'spin', () => {
 	it( 'still avoids only the most recent winner when there are two items', () => {
 		const state = {
 			items: [],
+			excludedIndexes: [],
 			rotation: 0,
 			isSpinning: false,
 			activeWinnerIndex: null,
@@ -285,7 +292,7 @@ describe( 'spin', () => {
 			spinDuration: 100,
 			minFullSpins: 6,
 			maxFullSpins: 10,
-			minItemsMessage: 'Add at least 2 items.',
+			minItemsMessage: 'Keep at least 2 active items.',
 			selectedPrefix: 'Selected: '
 		} );
 
@@ -293,5 +300,96 @@ describe( 'spin', () => {
 
 		expect( state.recentWinnerIndexes ).toEqual( [ 0, 1 ] );
 		expect( setResult ).toHaveBeenLastCalledWith( 'Selected: Pizza' );
+	} );
+
+	it( 'skips excluded items when picking a winner', () => {
+		const state = {
+			items: [],
+			excludedIndexes: [ 0 ],
+			rotation: 0,
+			isSpinning: false,
+			activeWinnerIndex: null,
+			lastPointerIndex: null,
+			recentWinnerIndexes: []
+		};
+
+		vi.spyOn( Math, 'random' )
+			.mockReturnValueOnce( 0 )
+			.mockReturnValueOnce( 0 )
+			.mockReturnValueOnce( 0 )
+			.mockReturnValueOnce( 0 )
+			.mockReturnValueOnce( 0 )
+			.mockReturnValueOnce( 0 );
+		vi.stubGlobal( 'requestAnimationFrame', callback => {
+			callback( 100 );
+			return 1;
+		} );
+
+		const setResult = vi.fn();
+		const spinner = createSpinner( {
+			state,
+			renderer: {
+				draw: vi.fn(),
+				getPointerIndex: vi.fn().mockReturnValue( 1 ),
+				getWinner: vi.fn(),
+				getRotationForIndex: vi.fn( () => 0 )
+			},
+			audio: {
+				ensureAudioContext: vi.fn(),
+				playTick: vi.fn(),
+				playBell: vi.fn()
+			},
+			spinBtn: { disabled: false },
+			getItems: vi.fn( () => [ 'Pizza', 'Burger', 'Sushi' ] ),
+			setResult,
+			spinDuration: 100,
+			minFullSpins: 6,
+			maxFullSpins: 10,
+			minItemsMessage: 'Keep at least 2 active items.',
+			selectedPrefix: 'Selected: '
+		} );
+
+		spinner.spin();
+
+		expect( state.activeWinnerIndex ).toBe( 1 );
+		expect( setResult ).toHaveBeenLastCalledWith( 'Selected: Burger' );
+	} );
+
+	it( 'blocks spinning when exclusions leave fewer than two active items', () => {
+		const setResult = vi.fn();
+		const spinner = createSpinner( {
+			state: {
+				items: [],
+				excludedIndexes: [ 1, 2 ],
+				rotation: 0,
+				isSpinning: false,
+				activeWinnerIndex: null,
+				lastPointerIndex: null,
+				recentWinnerIndexes: []
+			},
+			renderer: {
+				draw: vi.fn(),
+				getPointerIndex: vi.fn(),
+				getWinner: vi.fn(),
+				getRotationForIndex: vi.fn()
+			},
+			audio: {
+				ensureAudioContext: vi.fn(),
+				playTick: vi.fn(),
+				playBell: vi.fn()
+			},
+			spinBtn: { disabled: false },
+			getItems: vi.fn( () => [ 'Pizza', 'Burger', 'Sushi' ] ),
+			setResult,
+			spinDuration: 100,
+			minFullSpins: 6,
+			maxFullSpins: 10,
+			minItemsMessage: 'Keep at least 2 active items.',
+			selectedPrefix: 'Selected: '
+		} );
+
+		spinner.spin();
+
+		expect( setResult ).toHaveBeenCalledWith( 'Keep at least 2 active items.' );
 	} );
 } );

@@ -64,8 +64,10 @@ describe( 'constants', () => {
 		expect( COLORS ).toHaveLength( 16 );
 		expect( TEXT ).toEqual( {
 			emptyWheel: 'Add items',
-			minItems: 'Add at least 2 items.',
-			selectedPrefix: 'Selected: '
+			minItems: 'Keep at least 2 active items.',
+			selectedPrefix: 'Selected: ',
+			excludedPrefix: 'Excluded: ',
+			restoredPrefix: 'Back in draw: '
 		} );
 	} );
 

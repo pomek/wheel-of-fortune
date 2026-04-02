@@ -173,6 +173,7 @@ canvas {
     display: block;
     border-radius: 50%;
     background: white;
+    cursor: pointer;
 }
 
 .result {

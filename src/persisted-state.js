@@ -8,7 +8,8 @@ function getHashStorageKey( hash ) {
 function getDefaultState() {
 	return {
 		rotation: 0,
-		recentWinnerIndexes: []
+		recentWinnerIndexes: [],
+		excludedIndexes: []
 	};
 }
 
@@ -19,6 +20,14 @@ function getRecentWinnerIndexes( parsedValue ) {
 
 	if ( Number.isInteger( parsedValue.lastWinnerIndex ) ) {
 		return [ parsedValue.lastWinnerIndex ];
+	}
+
+	return [];
+}
+
+function getExcludedIndexes( parsedValue ) {
+	if ( Array.isArray( parsedValue.excludedIndexes ) ) {
+		return [ ...new Set( parsedValue.excludedIndexes.filter( Number.isInteger ) ) ];
 	}
 
 	return [];
@@ -43,7 +52,8 @@ export function loadPersistedState( {
 
 		return {
 			rotation: Number.isFinite( parsedValue.rotation ) ? parsedValue.rotation : 0,
-			recentWinnerIndexes: getRecentWinnerIndexes( parsedValue )
+			recentWinnerIndexes: getRecentWinnerIndexes( parsedValue ),
+			excludedIndexes: getExcludedIndexes( parsedValue )
 		};
 	} catch {
 		return getDefaultState();

@@ -5,8 +5,9 @@ An interactive browser-based wheel picker for teams, games, and random choices.
 ## What it does
 
 - Spins a canvas-based wheel from a list of items entered in the textarea
+- Lets you click wheel segments to exclude or restore people before the next spin
 - Stores the current list in the URL hash, so the wheel can be bookmarked or shared
-- Persists wheel state per bookmarked list in local storage
+- Persists wheel state per bookmarked list in local storage, including locally excluded segments
 - Avoids repeating the last two winners when possible
 - Supports keyboard shortcuts such as `Space` to spin when the textarea is not focused
 - Plays packaged click and bell sounds during the spin

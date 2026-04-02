@@ -13,6 +13,8 @@ export const COLORS = [
 
 export const TEXT = {
 	emptyWheel: 'Add items',
-	minItems: 'Add at least 2 items.',
-	selectedPrefix: 'Selected: '
+	minItems: 'Keep at least 2 active items.',
+	selectedPrefix: 'Selected: ',
+	excludedPrefix: 'Excluded: ',
+	restoredPrefix: 'Back in draw: '
 };

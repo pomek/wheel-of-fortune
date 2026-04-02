@@ -18,6 +18,29 @@ async function stubBrowserApis( page ) {
 	} );
 }
 
+async function clickWheelSegment( page, index, totalSegments ) {
+	const wheel = page.locator( '#wheel' );
+	const box = await wheel.boundingBox();
+	const angle = ( ( index + 0.5 ) / totalSegments ) * Math.PI * 2;
+	const radius = ( box?.width ?? 0 ) * 0.3;
+
+	await wheel.click( {
+		position: {
+			x: ( box?.width ?? 0 ) / 2 + Math.cos( angle ) * radius,
+			y: ( box?.height ?? 0 ) / 2 + Math.sin( angle ) * radius
+		}
+	} );
+}
+
+async function getPersistedWheelState( page ) {
+	return page.evaluate( () => {
+		const storageKey = `wheel-of-fortune:state:${ window.location.hash || '#default' }`;
+		const rawValue = window.localStorage.getItem( storageKey );
+
+		return rawValue ? JSON.parse( rawValue ) : null;
+	} );
+}
+
 test.beforeEach( async ( { page } ) => {
 	await stubBrowserApis( page );
 	await page.goto( '/index.html' );
@@ -63,7 +86,44 @@ test( 'shows validation when there are fewer than two items', async ( { page } )
 	await page.getByLabel( 'Wheel items' ).fill( 'Only one' );
 	await page.getByRole( 'button', { name: 'Spin' } ).click();
 
-	await expect( page.locator( '#result' ) ).toHaveText( 'Add at least 2 items.' );
+	await expect( page.locator( '#result' ) ).toHaveText( 'Keep at least 2 active items.' );
+} );
+
+test( 'clicking a segment excludes it from the draw and clicking again restores it', async ( { page } ) => {
+	const items = [ 'Alice', 'Bob', 'Carol' ];
+
+	await page.getByLabel( 'Wheel items' ).fill( items.join( '\n' ) );
+	await page.getByLabel( 'Wheel items' ).blur();
+	await clickWheelSegment( page, 0, items.length );
+
+	await expect.poll( async () => ( await getPersistedWheelState( page ) )?.excludedIndexes ).toEqual( [ 0 ] );
+	await expect( page.locator( '#toast' ) ).toHaveText( 'Excluded: Alice' );
+
+	await page.getByRole( 'button', { name: 'Spin' } ).click();
+	await expect( page.locator( '#result' ) ).toContainText( 'Selected:' );
+	await expect( page.locator( '#result' ) ).not.toHaveText( 'Selected: Alice' );
+
+	await clickWheelSegment( page, 0, items.length );
+
+	await expect.poll( async () => ( await getPersistedWheelState( page ) )?.excludedIndexes ).toEqual( [] );
+	await expect( page.locator( '#toast' ) ).toHaveText( 'Back in draw: Alice' );
+	await page.reload();
+	await expect.poll( async () => ( await getPersistedWheelState( page ) )?.excludedIndexes ).toEqual( [] );
+} );
+
+test( 'keeps at least two active items when excluding segments', async ( { page } ) => {
+	const items = [ 'Alice', 'Bob', 'Carol' ];
+
+	await page.getByLabel( 'Wheel items' ).fill( items.join( '\n' ) );
+	await page.getByLabel( 'Wheel items' ).blur();
+	await clickWheelSegment( page, 0, items.length );
+	await clickWheelSegment( page, 1, items.length );
+
+	await expect.poll( async () => ( await getPersistedWheelState( page ) )?.excludedIndexes ).toEqual( [ 0 ] );
+	await expect( page.locator( '#toast' ) ).toHaveText( 'Keep at least 2 active items.' );
+	await page.getByRole( 'button', { name: 'Spin' } ).click();
+	await expect( page.locator( '#result' ) ).toContainText( 'Selected:' );
+	await expect( page.locator( '#result' ) ).not.toHaveText( 'Selected: Alice' );
 } );
 
 test( 'spins the wheel and shows a selected item', async ( { page } ) => {

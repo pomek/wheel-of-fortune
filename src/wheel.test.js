@@ -114,4 +114,32 @@ describe( 'wheel', () => {
 
 		expect( renderer.getWinner( items, rotation ) ).toBe( 'B' );
 	} );
+
+	it( 'maps click coordinates to the matching segment', () => {
+		const renderer = createWheelRenderer( {
+			canvas: { width: 520 },
+			ctx: createContext(),
+			colors: [ '#111111' ],
+			emptyText: 'Add items'
+		} );
+		const items = [ 'A', 'B', 'C', 'D' ];
+
+		expect( renderer.getIndexAtPoint( items, 0, 390, 390 ) ).toBe( 0 );
+		expect( renderer.getIndexAtPoint( items, 0, 130, 390 ) ).toBe( 1 );
+		expect( renderer.getIndexAtPoint( items, 0, 130, 130 ) ).toBe( 2 );
+		expect( renderer.getIndexAtPoint( items, 0, 390, 130 ) ).toBe( 3 );
+	} );
+
+	it( 'ignores clicks outside the wheel ring', () => {
+		const renderer = createWheelRenderer( {
+			canvas: { width: 520 },
+			ctx: createContext(),
+			colors: [ '#111111' ],
+			emptyText: 'Add items'
+		} );
+		const items = [ 'A', 'B', 'C', 'D' ];
+
+		expect( renderer.getIndexAtPoint( items, 0, 260, 260 ) ).toBeNull();
+		expect( renderer.getIndexAtPoint( items, 0, 520, 260 ) ).toBeNull();
+	} );
 } );

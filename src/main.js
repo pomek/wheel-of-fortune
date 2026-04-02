@@ -104,6 +104,14 @@ function showToast( message ) {
 	}, 2600 );
 }
 
+function persistWheelState() {
+	savePersistedState( {
+		rotation: state.rotation,
+		recentWinnerIndexes: state.recentWinnerIndexes,
+		excludedIndexes: state.excludedIndexes
+	} );
+}
+
 function updateSoundButton() {
 	const muted = audio.isMuted();
 
@@ -123,7 +131,8 @@ function toggleSound() {
 function drawWheel() {
 	renderer.draw( state.items, state.rotation, {
 		activeIndex: state.activeWinnerIndex,
-		showActiveHighlight: state.isWinnerHighlightVisible
+		showActiveHighlight: state.isWinnerHighlightVisible,
+		excludedIndexes: state.excludedIndexes
 	} );
 }
 
@@ -176,6 +185,8 @@ function restorePersistedState() {
 	state.rotation = persistedState.rotation;
 	state.recentWinnerIndexes = persistedState.recentWinnerIndexes
 		.filter( index => index >= 0 && index < state.items.length );
+	state.excludedIndexes = persistedState.excludedIndexes
+		.filter( index => index >= 0 && index < state.items.length );
 }
 
 function updateWheel( { restoreState = true } = {} ) {
@@ -187,6 +198,7 @@ function updateWheel( { restoreState = true } = {} ) {
 	} else {
 		state.rotation = 0;
 		state.recentWinnerIndexes = [];
+		state.excludedIndexes = [];
 	}
 
 	stopWinnerBlink();
@@ -235,8 +247,48 @@ const spinner = createSpinner( {
 		showToast( `${ TEXT.selectedPrefix }${ winner }` );
 		startWinnerBlink();
 	},
-	persistState: persistedState => savePersistedState( persistedState )
+	persistState: persistWheelState
 } );
+
+function getActiveItemsCount() {
+	return state.items.length - state.excludedIndexes.length;
+}
+
+function clearWinnerSelection() {
+	stopWinnerBlink();
+	state.activeWinnerIndex = null;
+	state.lastPointerIndex = state.items.length ?
+		renderer.getPointerIndex( state.items, state.rotation ) :
+		null;
+}
+
+function toggleExcludedIndex( index ) {
+	const itemLabel = state.items[ index ];
+
+	if ( typeof itemLabel === 'undefined' ) {
+		return;
+	}
+
+	if ( state.excludedIndexes.includes( index ) ) {
+		state.excludedIndexes = state.excludedIndexes.filter( excludedIndex => excludedIndex !== index );
+		clearWinnerSelection();
+		persistWheelState();
+		drawWheel();
+		showToast( `${ TEXT.restoredPrefix }${ itemLabel }` );
+		return;
+	}
+
+	if ( getActiveItemsCount() <= 2 ) {
+		showToast( TEXT.minItems );
+		return;
+	}
+
+	state.excludedIndexes = [ ...state.excludedIndexes, index ];
+	clearWinnerSelection();
+	persistWheelState();
+	drawWheel();
+	showToast( `${ TEXT.excludedPrefix }${ itemLabel }` );
+}
 
 function resetWheel() {
 	const previousHash = window.location.hash;
@@ -264,6 +316,23 @@ function spinWheel() {
 		null;
 	drawWheel();
 	spinner.spin();
+}
+
+function handleCanvasClick( event ) {
+	if ( state.isSpinning || !state.items.length ) {
+		return;
+	}
+
+	const rect = elements.canvas.getBoundingClientRect();
+	const x = ( event.clientX - rect.left ) * ( elements.canvas.width / rect.width );
+	const y = ( event.clientY - rect.top ) * ( elements.canvas.height / rect.height );
+	const index = renderer.getIndexAtPoint( state.items, state.rotation, x, y );
+
+	if ( index === null ) {
+		return;
+	}
+
+	toggleExcludedIndex( index );
 }
 
 function handleWindowKeydown( event ) {
@@ -313,6 +382,7 @@ function handleHashChange() {
 elements.spinBtn.addEventListener( 'click', spinWheel );
 elements.resetBtn.addEventListener( 'click', resetWheel );
 elements.soundBtn.addEventListener( 'click', toggleSound );
+elements.canvas.addEventListener( 'click', handleCanvasClick );
 elements.textarea.addEventListener( 'focus', spinner.stop );
 elements.textarea.addEventListener( 'input', handleTextareaInput );
 elements.textarea.addEventListener( 'blur', handleTextareaBlur );

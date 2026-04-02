@@ -6,6 +6,7 @@ describe( 'state', () => {
 	it( 'creates the default application state', () => {
 		expect( createState() ).toEqual( {
 			items: [],
+			excludedIndexes: [],
 			rotation: 0,
 			isSpinning: false,
 			activeWinnerIndex: null,
