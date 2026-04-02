@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Wheel of Fortune</title>
+    <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+  <script type="module" crossorigin src="./assets/index-CgXa6sq0.js"></script>
+  <link rel="stylesheet" crossorigin href="./assets/index-CeTCzbT4.css">
+</head>
+<body>
+<div class="app">
+    <section class="panel">
+        <h1>Wheel of Fortune</h1>
+        <div class="sub" id="itemsHelp">
+            Enter items one per line. Click segments to exclude or restore them, keep at least 2 active items, and press Space to spin when the textarea is not focused.
+        </div>
+
+        <label for="items">Wheel items</label>
+        <textarea id="items" aria-describedby="itemsHelp">Pizza
+Burger
+Sushi
+Taco
+Kebab
+Ramen</textarea>
+
+        <div class="buttons">
+            <button id="resetBtn" class="danger">Reset</button>
+            <button id="soundBtn" class="secondary icon-btn" aria-label="Mute sounds" aria-pressed="false" title="Mute sounds">🔊</button>
+            <button id="spinBtn" class="primary">Spin</button>
+        </div>
+    </section>
+
+    <section class="panel wheel-wrap">
+        <div class="wheel-box">
+            <canvas id="wheel" width="520" height="520" role="img" aria-label="Wheel of Fortune segments"></canvas>
+            <div class="pointer" aria-hidden="true"></div>
+        </div>
+        <div id="result" class="result" role="status" aria-live="polite" aria-atomic="true"></div>
+        <div class="hint">
+            Focusing the textarea stops the current spin. The current list is stored in the URL, and excluded segments stay saved locally for that wheel.
+        </div>
+    </section>
+</div>
+
+<div id="toast" class="toast" aria-hidden="true"></div>
+
+</body>
+</html>
