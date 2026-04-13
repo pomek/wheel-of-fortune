@@ -129,6 +129,17 @@ button:disabled {
     color: white;
 }
 
+.counter {
+    font-size: 13px;
+    color: var(--muted);
+    margin-bottom: 12px;
+    letter-spacing: 0.02em;
+}
+
+.counter strong {
+    color: var(--accent);
+}
+
 .wheel-wrap {
     display: flex;
     flex-direction: column;

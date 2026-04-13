@@ -128,12 +128,23 @@ function toggleSound() {
 	updateSoundButton();
 }
 
+function updateCounter() {
+	const total = state.items.length;
+	const active = getActiveItemsCount();
+	const hasExclusions = active < total;
+
+	elements.counterEl.innerHTML = hasExclusions ?
+		`<strong>${ active }</strong> / ${ total } active` :
+		`${ total } / ${ total } active`;
+}
+
 function drawWheel() {
 	renderer.draw( state.items, state.rotation, {
 		activeIndex: state.activeWinnerIndex,
 		showActiveHighlight: state.isWinnerHighlightVisible,
 		excludedIndexes: state.excludedIndexes
 	} );
+	updateCounter();
 }
 
 function stopWinnerBlink( { redraw = false } = {} ) {

@@ -344,6 +344,61 @@ test( 'updates the wheel when the URL hash changes without reload', async ( { pa
 	expect( sharedHashItems ).toContain( winner );
 } );
 
+test( 'counter shows total when all items are active', async ( { page } ) => {
+	await expect( page.locator( '#counter' ) ).toHaveText( '6 / 6 active' );
+	await expect( page.locator( '#counter strong' ) ).toHaveCount( 0 );
+} );
+
+test( 'counter highlights active count when some segments are excluded', async ( { page } ) => {
+	const items = [ 'Alice', 'Bob', 'Carol' ];
+
+	await page.getByLabel( 'Wheel items' ).fill( items.join( '\n' ) );
+	await page.getByLabel( 'Wheel items' ).blur();
+	await clickWheelSegment( page, 0, items.length );
+
+	await expect( page.locator( '#counter' ) ).toHaveText( '2 / 3 active' );
+	await expect( page.locator( '#counter strong' ) ).toHaveText( '2' );
+} );
+
+test( 'counter returns to plain text when excluded segment is restored', async ( { page } ) => {
+	const items = [ 'Alice', 'Bob', 'Carol' ];
+
+	await page.getByLabel( 'Wheel items' ).fill( items.join( '\n' ) );
+	await page.getByLabel( 'Wheel items' ).blur();
+	await clickWheelSegment( page, 0, items.length );
+
+	await expect( page.locator( '#counter strong' ) ).toHaveText( '2' );
+
+	await clickWheelSegment( page, 0, items.length );
+
+	await expect( page.locator( '#counter' ) ).toHaveText( '3 / 3 active' );
+	await expect( page.locator( '#counter strong' ) ).toHaveCount( 0 );
+} );
+
+test( 'counter updates when items change in the textarea', async ( { page } ) => {
+	await expect( page.locator( '#counter' ) ).toHaveText( '6 / 6 active' );
+
+	await page.getByLabel( 'Wheel items' ).fill( 'Alice\nBob\nCarol' );
+	await page.getByLabel( 'Wheel items' ).blur();
+
+	await expect( page.locator( '#counter' ) ).toHaveText( '3 / 3 active' );
+} );
+
+test( 'counter resets after clicking Reset', async ( { page } ) => {
+	const items = [ 'Alice', 'Bob', 'Carol' ];
+
+	await page.getByLabel( 'Wheel items' ).fill( items.join( '\n' ) );
+	await page.getByLabel( 'Wheel items' ).blur();
+	await clickWheelSegment( page, 0, items.length );
+
+	await expect( page.locator( '#counter strong' ) ).toHaveText( '2' );
+
+	await page.getByRole( 'button', { name: 'Reset' } ).click();
+
+	await expect( page.locator( '#counter' ) ).toHaveText( '6 / 6 active' );
+	await expect( page.locator( '#counter strong' ) ).toHaveCount( 0 );
+} );
+
 test( 'reset restores the default items and clears the result', async ( { page } ) => {
 	await page.getByLabel( 'Wheel items' ).fill( 'Apple\nBanana\nCherry' );
 	await page.getByLabel( 'Wheel items' ).blur();
