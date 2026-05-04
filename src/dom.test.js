@@ -14,6 +14,8 @@ describe( 'dom', () => {
             <button id="spinBtn"></button>
             <button id="resetBtn"></button>
             <button id="soundBtn"></button>
+            <button id="themeBtn"></button>
+            <div id="counter"></div>
             <div id="result"></div>
             <div id="toast"></div>
             <canvas id="wheel"></canvas>
@@ -36,6 +38,8 @@ describe( 'dom', () => {
 		expect( elements.spinBtn.id ).toBe( 'spinBtn' );
 		expect( elements.resetBtn.id ).toBe( 'resetBtn' );
 		expect( elements.soundBtn.id ).toBe( 'soundBtn' );
+		expect( elements.themeBtn.id ).toBe( 'themeBtn' );
+		expect( elements.counterEl.id ).toBe( 'counter' );
 		expect( elements.resultEl.id ).toBe( 'result' );
 		expect( elements.toastEl.id ).toBe( 'toast' );
 		expect( elements.canvas.id ).toBe( 'wheel' );

@@ -1,12 +1,41 @@
 :root {
     --bg: #0f172a;
+    --bg-gradient-start: #020617;
     --panel: #111827;
+    --panel-bg: rgba(17, 24, 39, 0.95);
     --panel-2: #1f2937;
+    --panel-shadow: rgba(0, 0, 0, 0.25);
     --text: #e5e7eb;
     --muted: #94a3b8;
     --accent: #22c55e;
+    --accent-text: #052e16;
     --danger: #ef4444;
+    --danger-text: #ffffff;
     --border: #334155;
+    --secondary-bg: #334155;
+    --icon-pressed-bg: #1e293b;
+    --icon-pressed-border: #64748b;
+    --wheel-bg: #ffffff;
+}
+
+[data-theme='light'] {
+    --bg: #e2e8f0;
+    --bg-gradient-start: #f8fafc;
+    --panel: #ffffff;
+    --panel-bg: rgba(255, 255, 255, 0.96);
+    --panel-2: #f1f5f9;
+    --panel-shadow: rgba(15, 23, 42, 0.12);
+    --text: #0f172a;
+    --muted: #475569;
+    --accent: #16a34a;
+    --accent-text: #f0fdf4;
+    --danger: #dc2626;
+    --danger-text: #ffffff;
+    --border: #cbd5e1;
+    --secondary-bg: #cbd5e1;
+    --icon-pressed-bg: #e2e8f0;
+    --icon-pressed-border: #94a3b8;
+    --wheel-bg: #94a3b8;
 }
 
 * {
@@ -16,7 +45,7 @@
 body {
     margin: 0;
     font-family: Arial, sans-serif;
-    background: linear-gradient(180deg, #020617, var(--bg));
+    background: linear-gradient(180deg, var(--bg-gradient-start), var(--bg));
     color: var(--text);
     min-height: 100vh;
 }
@@ -31,11 +60,11 @@ body {
 }
 
 .panel {
-    background: rgba(17, 24, 39, 0.95);
+    background: var(--panel-bg);
     border: 1px solid var(--border);
     border-radius: 16px;
     padding: 20px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+    box-shadow: 0 10px 30px var(--panel-shadow);
 }
 
 h1 {
@@ -82,6 +111,10 @@ textarea {
     margin-left: auto;
 }
 
+.buttons .icon-btn ~ .icon-btn {
+    margin-left: 0;
+}
+
 button {
     border: 0;
     border-radius: 999px;
@@ -103,12 +136,12 @@ button:disabled {
 
 .primary {
     background: var(--accent);
-    color: #052e16;
+    color: var(--accent-text);
     font-weight: bold;
 }
 
 .secondary {
-    background: #334155;
+    background: var(--secondary-bg);
     color: var(--text);
 }
 
@@ -120,13 +153,13 @@ button:disabled {
 }
 
 .icon-btn[aria-pressed='true'] {
-    background: #1e293b;
-    box-shadow: inset 0 0 0 1px #64748b;
+    background: var(--icon-pressed-bg);
+    box-shadow: inset 0 0 0 1px var(--icon-pressed-border);
 }
 
 .danger {
     background: var(--danger);
-    color: white;
+    color: var(--danger-text);
 }
 
 .counter {
@@ -183,7 +216,7 @@ canvas {
     height: 100%;
     display: block;
     border-radius: 50%;
-    background: white;
+    background: var(--wheel-bg);
     cursor: pointer;
 }
 

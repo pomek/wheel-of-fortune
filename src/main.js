@@ -14,6 +14,7 @@ import { formatItems, parseItems } from './items.js';
 import { clearPersistedState, loadPersistedState, savePersistedState } from './persisted-state.js';
 import { createSpinner } from './spin.js';
 import { createState } from './state.js';
+import { applyTheme, getInitialTheme, saveThemePreference, THEMES } from './theme.js';
 import { getItemsFromHash, syncItemsInUrl } from './url-state.js';
 import { createWheelRenderer } from './wheel.js';
 
@@ -22,6 +23,7 @@ const TEXTAREA_UPDATE_DEBOUNCE = 180;
 
 const elements = getElements();
 const state = createState();
+let currentTheme = getInitialTheme();
 const audio = createAudioPlayer( {
 	muted: loadMutedPreference()
 } );
@@ -126,6 +128,23 @@ function toggleSound() {
 
 	saveMutedPreference( muted );
 	updateSoundButton();
+}
+
+function updateThemeButton() {
+	const isLight = currentTheme === THEMES.LIGHT;
+	const nextLabel = isLight ? 'Switch to dark theme' : 'Switch to light theme';
+
+	elements.themeBtn.textContent = isLight ? '🌙' : '☀️';
+	elements.themeBtn.setAttribute( 'aria-pressed', String( isLight ) );
+	elements.themeBtn.setAttribute( 'aria-label', nextLabel );
+	elements.themeBtn.title = nextLabel;
+}
+
+function toggleTheme() {
+	currentTheme = currentTheme === THEMES.LIGHT ? THEMES.DARK : THEMES.LIGHT;
+	applyTheme( currentTheme );
+	saveThemePreference( currentTheme );
+	updateThemeButton();
 }
 
 function updateCounter() {
@@ -393,6 +412,7 @@ function handleHashChange() {
 elements.spinBtn.addEventListener( 'click', spinWheel );
 elements.resetBtn.addEventListener( 'click', resetWheel );
 elements.soundBtn.addEventListener( 'click', toggleSound );
+elements.themeBtn.addEventListener( 'click', toggleTheme );
 elements.canvas.addEventListener( 'click', handleCanvasClick );
 elements.textarea.addEventListener( 'focus', spinner.stop );
 elements.textarea.addEventListener( 'input', handleTextareaInput );
@@ -401,6 +421,8 @@ elements.textarea.addEventListener( 'keydown', handleTextareaKeydown );
 window.addEventListener( 'keydown', handleWindowKeydown );
 window.addEventListener( 'hashchange', handleHashChange );
 
+applyTheme( currentTheme );
+updateThemeButton();
 applyItemsFromHash();
 updateSoundButton();
 updateWheel();

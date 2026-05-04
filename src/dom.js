@@ -17,6 +17,7 @@ export function getElements() {
 	const spinBtn = getRequiredElement( 'spinBtn', HTMLButtonElement );
 	const resetBtn = getRequiredElement( 'resetBtn', HTMLButtonElement );
 	const soundBtn = getRequiredElement( 'soundBtn', HTMLButtonElement );
+	const themeBtn = getRequiredElement( 'themeBtn', HTMLButtonElement );
 	const counterEl = getRequiredElement( 'counter', HTMLElement );
 	const resultEl = getRequiredElement( 'result', HTMLElement );
 	const toastEl = getRequiredElement( 'toast', HTMLElement );
@@ -32,6 +33,7 @@ export function getElements() {
 		spinBtn,
 		resetBtn,
 		soundBtn,
+		themeBtn,
 		counterEl,
 		resultEl,
 		toastEl,
