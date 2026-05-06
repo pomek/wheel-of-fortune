@@ -18,6 +18,12 @@ export function getElements() {
 	const resetBtn = getRequiredElement( 'resetBtn', HTMLButtonElement );
 	const soundBtn = getRequiredElement( 'soundBtn', HTMLButtonElement );
 	const themeBtn = getRequiredElement( 'themeBtn', HTMLButtonElement );
+	const newRoundBtn = getRequiredElement( 'newRoundBtn', HTMLButtonElement );
+	const itemsTabBtn = getRequiredElement( 'itemsTabBtn', HTMLButtonElement );
+	const rosterTabBtn = getRequiredElement( 'rosterTabBtn', HTMLButtonElement );
+	const itemsTab = getRequiredElement( 'itemsTab', HTMLElement );
+	const rosterTab = getRequiredElement( 'rosterTab', HTMLElement );
+	const rosterEl = getRequiredElement( 'roster', HTMLElement );
 	const counterEl = getRequiredElement( 'counter', HTMLElement );
 	const resultEl = getRequiredElement( 'result', HTMLElement );
 	const toastEl = getRequiredElement( 'toast', HTMLElement );
@@ -34,6 +40,12 @@ export function getElements() {
 		resetBtn,
 		soundBtn,
 		themeBtn,
+		newRoundBtn,
+		itemsTabBtn,
+		rosterTabBtn,
+		itemsTab,
+		rosterTab,
+		rosterEl,
 		counterEl,
 		resultEl,
 		toastEl,

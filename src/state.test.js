@@ -7,6 +7,7 @@ describe( 'state', () => {
 		expect( createState() ).toEqual( {
 			items: [],
 			excludedIndexes: [],
+			talkedIndexes: [],
 			rotation: 0,
 			isSpinning: false,
 			activeWinnerIndex: null,

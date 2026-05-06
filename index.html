@@ -10,23 +10,41 @@
 <div class="app">
     <section class="panel">
         <h1>Wheel of Fortune</h1>
-        <div class="sub" id="itemsHelp">
-            Enter items one per line. Click segments to exclude or restore them, keep at least 2 active items, and press Space to spin when the textarea is not focused.
+
+        <div class="tabs" role="tablist" aria-label="Wheel side panel">
+            <button id="itemsTabBtn" class="tab" role="tab" aria-selected="true" aria-controls="itemsTab" type="button">Items</button>
+            <button id="rosterTabBtn" class="tab" role="tab" aria-selected="false" aria-controls="rosterTab" tabindex="-1" type="button">Roster</button>
         </div>
 
-        <label for="items">Wheel items</label>
-        <textarea id="items" aria-describedby="itemsHelp">Pizza
+        <div id="itemsTab" class="tab-panel" role="tabpanel" aria-labelledby="itemsTabBtn">
+            <div class="sub" id="itemsHelp">
+                Enter items one per line. Click segments to exclude or restore them, keep at least 2 active items, and press Space to spin when the textarea is not focused.
+            </div>
+
+            <label for="items">Wheel items</label>
+            <textarea id="items" aria-describedby="itemsHelp">Pizza
 Burger
 Sushi
 Taco
 Kebab
 Ramen</textarea>
 
-        <div class="buttons">
-            <button id="resetBtn" class="danger">Reset</button>
-            <button id="soundBtn" class="secondary icon-btn" aria-label="Mute sounds" aria-pressed="false" title="Mute sounds">🔊</button>
-            <button id="themeBtn" class="secondary icon-btn" aria-label="Switch to light theme" aria-pressed="false" title="Switch to light theme">🌙</button>
-            <button id="spinBtn" class="primary">Spin</button>
+            <div class="buttons">
+                <button id="resetBtn" class="danger">Reset</button>
+                <button id="soundBtn" class="secondary icon-btn" aria-label="Mute sounds" aria-pressed="false" title="Mute sounds">🔊</button>
+                <button id="themeBtn" class="secondary icon-btn" aria-label="Switch to light theme" aria-pressed="false" title="Switch to light theme">🌙</button>
+                <button id="spinBtn" class="primary">Spin</button>
+            </div>
+        </div>
+
+        <div id="rosterTab" class="tab-panel" role="tabpanel" aria-labelledby="rosterTabBtn" hidden>
+            <div class="sub">
+                Click a name to mark them as already spoken. Click again to undo. Greyed-out names are excluded from the wheel.
+            </div>
+            <ul id="roster" class="roster" aria-live="polite"></ul>
+            <div class="buttons">
+                <button id="newRoundBtn" class="secondary" type="button">New round</button>
+            </div>
         </div>
     </section>
 

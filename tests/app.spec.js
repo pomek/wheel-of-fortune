@@ -399,6 +399,28 @@ test( 'counter resets after clicking Reset', async ( { page } ) => {
 	await expect( page.locator( '#counter strong' ) ).toHaveCount( 0 );
 } );
 
+test( 'roster talked marks clear on reload while exclusions persist', async ( { page } ) => {
+	await page.getByRole( 'tab', { name: 'Roster' } ).click();
+
+	const pizzaPill = page.getByRole( 'button', { name: /^Pizza —/ } );
+
+	await pizzaPill.click();
+	await expect( pizzaPill ).toHaveAttribute( 'aria-pressed', 'true' );
+	await expect( page.locator( '#counter' ) ).toHaveText( '6 / 6 active · 1 talked' );
+
+	await clickWheelSegment( page, 4, defaultItems.length );
+
+	await expect( page.locator( '#counter' ) ).toHaveText( '5 / 6 active · 1 talked' );
+	await expect( page.getByRole( 'button', { name: /^Kebab — absent/ } ) ).toBeVisible();
+
+	await page.reload();
+	await page.getByRole( 'tab', { name: 'Roster' } ).click();
+
+	await expect( page.locator( '#counter' ) ).toHaveText( '5 / 6 active' );
+	await expect( page.getByRole( 'button', { name: /^Pizza — mark as already spoke/ } ) ).toBeVisible();
+	await expect( page.getByRole( 'button', { name: /^Kebab — absent/ } ) ).toBeVisible();
+} );
+
 test( 'reset restores the default items and clears the result', async ( { page } ) => {
 	await page.getByLabel( 'Wheel items' ).fill( 'Apple\nBanana\nCherry' );
 	await page.getByLabel( 'Wheel items' ).blur();

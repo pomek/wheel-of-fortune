@@ -10,11 +10,17 @@ describe( 'dom', () => {
 
 	beforeEach( () => {
 		document.body.innerHTML = `
+            <button id="itemsTabBtn"></button>
+            <button id="rosterTabBtn"></button>
+            <div id="itemsTab"></div>
+            <div id="rosterTab"></div>
             <textarea id="items"></textarea>
             <button id="spinBtn"></button>
             <button id="resetBtn"></button>
             <button id="soundBtn"></button>
             <button id="themeBtn"></button>
+            <button id="newRoundBtn"></button>
+            <ul id="roster"></ul>
             <div id="counter"></div>
             <div id="result"></div>
             <div id="toast"></div>
@@ -39,6 +45,12 @@ describe( 'dom', () => {
 		expect( elements.resetBtn.id ).toBe( 'resetBtn' );
 		expect( elements.soundBtn.id ).toBe( 'soundBtn' );
 		expect( elements.themeBtn.id ).toBe( 'themeBtn' );
+		expect( elements.newRoundBtn.id ).toBe( 'newRoundBtn' );
+		expect( elements.itemsTabBtn.id ).toBe( 'itemsTabBtn' );
+		expect( elements.rosterTabBtn.id ).toBe( 'rosterTabBtn' );
+		expect( elements.itemsTab.id ).toBe( 'itemsTab' );
+		expect( elements.rosterTab.id ).toBe( 'rosterTab' );
+		expect( elements.rosterEl.id ).toBe( 'roster' );
 		expect( elements.counterEl.id ).toBe( 'counter' );
 		expect( elements.resultEl.id ).toBe( 'result' );
 		expect( elements.toastEl.id ).toBe( 'toast' );

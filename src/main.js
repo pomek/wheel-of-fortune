@@ -147,14 +147,23 @@ function toggleTheme() {
 	updateThemeButton();
 }
 
+function getActiveTalkedCount() {
+	const excludedSet = new Set( state.excludedIndexes );
+
+	return state.talkedIndexes.filter( index => !excludedSet.has( index ) ).length;
+}
+
 function updateCounter() {
 	const total = state.items.length;
 	const active = getActiveItemsCount();
 	const hasExclusions = active < total;
-
-	elements.counterEl.innerHTML = hasExclusions ?
+	const talked = getActiveTalkedCount();
+	const base = hasExclusions ?
 		`<strong>${ active }</strong> / ${ total } active` :
 		`${ total } / ${ total } active`;
+	const talkedSuffix = talked > 0 ? ` · <strong>${ talked }</strong> talked` : '';
+
+	elements.counterEl.innerHTML = base + talkedSuffix;
 }
 
 function drawWheel() {
@@ -164,6 +173,59 @@ function drawWheel() {
 		excludedIndexes: state.excludedIndexes
 	} );
 	updateCounter();
+	renderRoster();
+}
+
+function renderRoster() {
+	const excludedSet = new Set( state.excludedIndexes );
+	const talkedSet = new Set( state.talkedIndexes );
+
+	elements.rosterEl.replaceChildren();
+
+	if ( !state.items.length ) {
+		const emptyEl = document.createElement( 'li' );
+
+		emptyEl.className = 'roster-empty';
+		emptyEl.textContent = TEXT.emptyWheel;
+		elements.rosterEl.append( emptyEl );
+		return;
+	}
+
+	state.items.forEach( ( label, index ) => {
+		const isExcluded = excludedSet.has( index );
+		const isTalked = !isExcluded && talkedSet.has( index );
+		const pill = document.createElement( 'li' );
+		const button = document.createElement( 'button' );
+
+		button.type = 'button';
+		button.className = 'roster-pill';
+		button.dataset.index = String( index );
+		button.style.setProperty( '--pill-color', COLORS[ index % COLORS.length ] );
+
+		if ( isExcluded ) {
+			button.classList.add( 'is-absent' );
+			button.setAttribute( 'aria-label', `${ label } — absent. Click to restore.` );
+		} else if ( isTalked ) {
+			button.classList.add( 'is-talked' );
+			button.setAttribute( 'aria-pressed', 'true' );
+			button.setAttribute( 'aria-label', `${ label } — already spoke. Click to undo.` );
+		} else {
+			button.setAttribute( 'aria-pressed', 'false' );
+			button.setAttribute( 'aria-label', `${ label } — mark as already spoke.` );
+		}
+
+		const dot = document.createElement( 'span' );
+		dot.className = 'roster-dot';
+		dot.setAttribute( 'aria-hidden', 'true' );
+
+		const name = document.createElement( 'span' );
+		name.className = 'roster-label';
+		name.textContent = label;
+
+		button.append( dot, name );
+		pill.append( button );
+		elements.rosterEl.append( pill );
+	} );
 }
 
 function stopWinnerBlink( { redraw = false } = {} ) {
@@ -217,6 +279,8 @@ function restorePersistedState() {
 		.filter( index => index >= 0 && index < state.items.length );
 	state.excludedIndexes = persistedState.excludedIndexes
 		.filter( index => index >= 0 && index < state.items.length );
+	state.talkedIndexes = state.talkedIndexes
+		.filter( index => index >= 0 && index < state.items.length );
 }
 
 function updateWheel( { restoreState = true } = {} ) {
@@ -229,6 +293,7 @@ function updateWheel( { restoreState = true } = {} ) {
 		state.rotation = 0;
 		state.recentWinnerIndexes = [];
 		state.excludedIndexes = [];
+		state.talkedIndexes = [];
 	}
 
 	stopWinnerBlink();
@@ -290,6 +355,70 @@ function clearWinnerSelection() {
 	state.lastPointerIndex = state.items.length ?
 		renderer.getPointerIndex( state.items, state.rotation ) :
 		null;
+}
+
+function toggleTalkedIndex( index ) {
+	const itemLabel = state.items[ index ];
+
+	if ( typeof itemLabel === 'undefined' ) {
+		return;
+	}
+
+	if ( state.excludedIndexes.includes( index ) ) {
+		return;
+	}
+
+	if ( state.talkedIndexes.includes( index ) ) {
+		state.talkedIndexes = state.talkedIndexes.filter( talkedIndex => talkedIndex !== index );
+	} else {
+		state.talkedIndexes = [ ...state.talkedIndexes, index ];
+	}
+
+	renderRoster();
+	updateCounter();
+}
+
+function startNewRound() {
+	if ( !state.talkedIndexes.length ) {
+		return;
+	}
+
+	state.talkedIndexes = [];
+	renderRoster();
+	updateCounter();
+	showToast( 'New round — turn marks cleared.' );
+}
+
+function setActiveTab( tabName ) {
+	const isItems = tabName === 'items';
+
+	elements.itemsTabBtn.setAttribute( 'aria-selected', String( isItems ) );
+	elements.rosterTabBtn.setAttribute( 'aria-selected', String( !isItems ) );
+	elements.itemsTabBtn.tabIndex = isItems ? 0 : -1;
+	elements.rosterTabBtn.tabIndex = isItems ? -1 : 0;
+	elements.itemsTab.hidden = !isItems;
+	elements.rosterTab.hidden = isItems;
+}
+
+function handleRosterClick( event ) {
+	const button = event.target instanceof Element ? event.target.closest( '.roster-pill' ) : null;
+
+	if ( !button || !elements.rosterEl.contains( button ) ) {
+		return;
+	}
+
+	const index = Number( button.dataset.index );
+
+	if ( !Number.isInteger( index ) ) {
+		return;
+	}
+
+	if ( state.excludedIndexes.includes( index ) ) {
+		toggleExcludedIndex( index );
+		return;
+	}
+
+	toggleTalkedIndex( index );
 }
 
 function toggleExcludedIndex( index ) {
@@ -405,14 +534,35 @@ function handleTextareaInput() {
 function handleHashChange() {
 	clearScheduledWheelUpdate();
 	spinner.stop();
+	state.talkedIndexes = [];
 	applyItemsFromHash();
 	updateWheel();
+}
+
+function handleTabKeydown( event ) {
+	if ( event.key !== 'ArrowLeft' && event.key !== 'ArrowRight' ) {
+		return;
+	}
+
+	event.preventDefault();
+	const nextTab = event.target === elements.itemsTabBtn ? 'roster' : 'items';
+
+	setActiveTab( nextTab );
+	const focusTarget = nextTab === 'items' ? elements.itemsTabBtn : elements.rosterTabBtn;
+
+	focusTarget.focus();
 }
 
 elements.spinBtn.addEventListener( 'click', spinWheel );
 elements.resetBtn.addEventListener( 'click', resetWheel );
 elements.soundBtn.addEventListener( 'click', toggleSound );
 elements.themeBtn.addEventListener( 'click', toggleTheme );
+elements.newRoundBtn.addEventListener( 'click', startNewRound );
+elements.itemsTabBtn.addEventListener( 'click', () => setActiveTab( 'items' ) );
+elements.rosterTabBtn.addEventListener( 'click', () => setActiveTab( 'roster' ) );
+elements.itemsTabBtn.addEventListener( 'keydown', handleTabKeydown );
+elements.rosterTabBtn.addEventListener( 'keydown', handleTabKeydown );
+elements.rosterEl.addEventListener( 'click', handleRosterClick );
 elements.canvas.addEventListener( 'click', handleCanvasClick );
 elements.textarea.addEventListener( 'focus', spinner.stop );
 elements.textarea.addEventListener( 'input', handleTextareaInput );
