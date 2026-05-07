@@ -481,3 +481,21 @@ test( 'meeting status panel stays hidden until a meeting starts', async ( { page
 	await page.getByRole( 'button', { name: 'Stop meeting' } ).click();
 	await expect( meetingStatus ).toBeHidden();
 } );
+
+test( 'editing the items list clears talked marks and meeting state', async ( { page } ) => {
+	await page.getByRole( 'tab', { name: 'Roster' } ).click();
+	await page.getByRole( 'button', { name: /^Pizza —/ } ).click();
+	await expect( page.locator( '#counter' ) ).toContainText( '1 talked' );
+
+	await page.getByRole( 'tab', { name: 'Items' } ).click();
+	await page.getByLabel( 'Wheel items' ).fill( 'Alice\nBob\nCarol' );
+	await page.getByLabel( 'Wheel items' ).blur();
+
+	await expect( page.locator( '#counter' ) ).toHaveText( '3 / 3 active' );
+
+	await page.getByRole( 'tab', { name: 'Roster' } ).click();
+	await expect( page.locator( '.roster-pill.is-talked' ) ).toHaveCount( 0 );
+	await expect( page.locator( '#meetingStatus' ) ).toBeHidden();
+	await expect( page.locator( '#meetingSummary' ) ).toBeHidden();
+	await expect( page.getByRole( 'button', { name: 'New round' } ) ).toBeHidden();
+} );
