@@ -499,3 +499,34 @@ test( 'editing the items list clears talked marks and meeting state', async ( { 
 	await expect( page.locator( '#meetingSummary' ) ).toBeHidden();
 	await expect( page.getByRole( 'button', { name: 'New round' } ) ).toBeHidden();
 } );
+
+test( 'New round button is only visible when there is roster state to clear', async ( { page } ) => {
+	await page.getByRole( 'tab', { name: 'Roster' } ).click();
+
+	const newRoundBtn = page.getByRole( 'button', { name: 'New round' } );
+
+	await expect( newRoundBtn ).toBeHidden();
+
+	const pizzaPill = page.getByRole( 'button', { name: /^Pizza —/ } );
+
+	await pizzaPill.click();
+	await expect( newRoundBtn ).toBeVisible();
+
+	await pizzaPill.click();
+	await expect( newRoundBtn ).toBeHidden();
+
+	await page.getByRole( 'tab', { name: 'Items' } ).click();
+	await page.getByRole( 'button', { name: 'Spin' } ).click();
+	await expect( page.locator( '#result' ) ).toContainText( 'Selected:' );
+
+	await page.getByRole( 'tab', { name: 'Roster' } ).click();
+	await page.getByRole( 'button', { name: 'Start meeting' } ).click();
+	await expect( newRoundBtn ).toBeHidden();
+
+	await page.getByRole( 'button', { name: 'Stop meeting' } ).click();
+	await expect( newRoundBtn ).toBeVisible();
+
+	await newRoundBtn.click();
+	await expect( newRoundBtn ).toBeHidden();
+	await expect( page.locator( '#meetingSummary' ) ).toBeHidden();
+} );
