@@ -19,11 +19,16 @@ export function getElements() {
 	const soundBtn = getRequiredElement( 'soundBtn', HTMLButtonElement );
 	const themeBtn = getRequiredElement( 'themeBtn', HTMLButtonElement );
 	const newRoundBtn = getRequiredElement( 'newRoundBtn', HTMLButtonElement );
+	const startMeetingBtn = getRequiredElement( 'startMeetingBtn', HTMLButtonElement );
+	const stopMeetingBtn = getRequiredElement( 'stopMeetingBtn', HTMLButtonElement );
 	const itemsTabBtn = getRequiredElement( 'itemsTabBtn', HTMLButtonElement );
 	const rosterTabBtn = getRequiredElement( 'rosterTabBtn', HTMLButtonElement );
 	const itemsTab = getRequiredElement( 'itemsTab', HTMLElement );
 	const rosterTab = getRequiredElement( 'rosterTab', HTMLElement );
 	const rosterEl = getRequiredElement( 'roster', HTMLElement );
+	const meetingStatusEl = getRequiredElement( 'meetingStatus', HTMLElement );
+	const meetingSummaryEl = getRequiredElement( 'meetingSummary', HTMLElement );
+	const meetingSummaryListEl = getRequiredElement( 'meetingSummaryList', HTMLElement );
 	const counterEl = getRequiredElement( 'counter', HTMLElement );
 	const resultEl = getRequiredElement( 'result', HTMLElement );
 	const toastEl = getRequiredElement( 'toast', HTMLElement );
@@ -41,11 +46,16 @@ export function getElements() {
 		soundBtn,
 		themeBtn,
 		newRoundBtn,
+		startMeetingBtn,
+		stopMeetingBtn,
 		itemsTabBtn,
 		rosterTabBtn,
 		itemsTab,
 		rosterTab,
 		rosterEl,
+		meetingStatusEl,
+		meetingSummaryEl,
+		meetingSummaryListEl,
 		counterEl,
 		resultEl,
 		toastEl,

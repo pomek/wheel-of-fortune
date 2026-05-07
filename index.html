@@ -39,11 +39,18 @@ Ramen</textarea>
 
         <div id="rosterTab" class="tab-panel" role="tabpanel" aria-labelledby="rosterTabBtn" hidden>
             <div class="sub">
-                Click a name to mark them as already spoken. Click again to undo. Greyed-out names are excluded from the wheel.
+                Spin to pick a speaker, then click <strong>Start meeting</strong> to begin timing. Click any name during a meeting to switch the active speaker. Greyed-out names are excluded.
             </div>
+            <div id="meetingStatus" class="meeting-status" aria-live="polite" hidden></div>
             <ul id="roster" class="roster" aria-live="polite"></ul>
+            <div id="meetingSummary" class="meeting-summary" hidden>
+                <h2 class="meeting-summary-title">Meeting summary</h2>
+                <ol id="meetingSummaryList" class="meeting-summary-list"></ol>
+            </div>
             <div class="buttons">
-                <button id="newRoundBtn" class="secondary" type="button">New round</button>
+                <button id="startMeetingBtn" class="primary" type="button" disabled>Start meeting</button>
+                <button id="stopMeetingBtn" class="primary" type="button" hidden>Stop meeting</button>
+                <button id="newRoundBtn" class="secondary" type="button" hidden>New round</button>
             </div>
         </div>
     </section>

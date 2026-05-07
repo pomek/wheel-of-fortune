@@ -20,6 +20,7 @@ import { createWheelRenderer } from './wheel.js';
 
 const SOUND_MUTED_STORAGE_KEY = 'wheel-of-fortune:audio:muted';
 const TEXTAREA_UPDATE_DEBOUNCE = 180;
+const TIMER_TICK_INTERVAL = 500;
 
 const elements = getElements();
 const state = createState();
@@ -37,6 +38,8 @@ let activeToastTimeout = null;
 let winnerBlinkInterval = null;
 let winnerBlinkTimeout = null;
 let scheduledWheelUpdate = null;
+let timerTickInterval = null;
+let lastItemsKey = null;
 
 function applyItemsFromHash() {
 	elements.textarea.value = formatItems( getItemsFromHash( window.location.hash ) || DEFAULT_ITEMS );
@@ -153,6 +156,38 @@ function getActiveTalkedCount() {
 	return state.talkedIndexes.filter( index => !excludedSet.has( index ) ).length;
 }
 
+function formatDuration( milliseconds ) {
+	const totalSeconds = Math.max( 0, Math.floor( milliseconds / 1000 ) );
+	const minutes = Math.floor( totalSeconds / 60 );
+	const seconds = totalSeconds % 60;
+
+	return `${ minutes }:${ String( seconds ).padStart( 2, '0' ) }`;
+}
+
+function getCurrentSpeakerElapsed( now = Date.now() ) {
+	if ( state.activeSpeakerIndex === null || state.speakerStartedAt === null ) {
+		return 0;
+	}
+
+	return Math.max( 0, now - state.speakerStartedAt );
+}
+
+function getSpeakingTime( index, now = Date.now() ) {
+	const stored = state.speakingTimes[ index ] || 0;
+
+	if ( index === state.activeSpeakerIndex ) {
+		return stored + getCurrentSpeakerElapsed( now );
+	}
+
+	return stored;
+}
+
+function getTotalMeetingTime( now = Date.now() ) {
+	const stored = Object.values( state.speakingTimes ).reduce( ( sum, value ) => sum + value, 0 );
+
+	return stored + getCurrentSpeakerElapsed( now );
+}
+
 function updateCounter() {
 	const total = state.items.length;
 	const active = getActiveItemsCount();
@@ -174,11 +209,15 @@ function drawWheel() {
 	} );
 	updateCounter();
 	renderRoster();
+	renderMeetingStatus();
+	renderMeetingSummary();
+	updateMeetingButtons();
 }
 
 function renderRoster() {
 	const excludedSet = new Set( state.excludedIndexes );
 	const talkedSet = new Set( state.talkedIndexes );
+	const now = Date.now();
 
 	elements.rosterEl.replaceChildren();
 
@@ -193,7 +232,10 @@ function renderRoster() {
 
 	state.items.forEach( ( label, index ) => {
 		const isExcluded = excludedSet.has( index );
-		const isTalked = !isExcluded && talkedSet.has( index );
+		const isActiveSpeaker = !isExcluded && state.activeSpeakerIndex === index;
+		const elapsed = getSpeakingTime( index, now );
+		const hasTime = elapsed > 0;
+		const isTalked = !isExcluded && !isActiveSpeaker && ( talkedSet.has( index ) || hasTime );
 		const pill = document.createElement( 'li' );
 		const button = document.createElement( 'button' );
 
@@ -205,6 +247,10 @@ function renderRoster() {
 		if ( isExcluded ) {
 			button.classList.add( 'is-absent' );
 			button.setAttribute( 'aria-label', `${ label } — absent. Click to restore.` );
+		} else if ( isActiveSpeaker ) {
+			button.classList.add( 'is-active' );
+			button.setAttribute( 'aria-pressed', 'true' );
+			button.setAttribute( 'aria-label', `${ label } — speaking now.` );
 		} else if ( isTalked ) {
 			button.classList.add( 'is-talked' );
 			button.setAttribute( 'aria-pressed', 'true' );
@@ -223,9 +269,233 @@ function renderRoster() {
 		name.textContent = label;
 
 		button.append( dot, name );
+
+		if ( !isExcluded && ( hasTime || isActiveSpeaker ) ) {
+			const time = document.createElement( 'span' );
+
+			time.className = 'roster-time';
+			time.textContent = formatDuration( elapsed );
+			button.append( time );
+		}
+
 		pill.append( button );
 		elements.rosterEl.append( pill );
 	} );
+}
+
+function renderMeetingStatus() {
+	if ( !state.isMeetingActive ) {
+		elements.meetingStatusEl.hidden = true;
+		elements.meetingStatusEl.textContent = '';
+		return;
+	}
+
+	const total = getTotalMeetingTime();
+	const speakerLabel = state.activeSpeakerIndex !== null ? state.items[ state.activeSpeakerIndex ] : null;
+	const left = speakerLabel ? `Speaking: ${ speakerLabel }` : 'Meeting in progress';
+
+	elements.meetingStatusEl.hidden = false;
+	elements.meetingStatusEl.replaceChildren();
+
+	const leftEl = document.createElement( 'span' );
+	leftEl.textContent = left;
+
+	const rightEl = document.createElement( 'span' );
+	const totalLabel = document.createElement( 'span' );
+	totalLabel.textContent = 'Total ';
+	const totalValue = document.createElement( 'strong' );
+	totalValue.textContent = formatDuration( total );
+	rightEl.append( totalLabel, totalValue );
+
+	elements.meetingStatusEl.append( leftEl, rightEl );
+}
+
+function renderMeetingSummary() {
+	if ( !state.hasMeetingSummary ) {
+		elements.meetingSummaryEl.hidden = true;
+		elements.meetingSummaryListEl.replaceChildren();
+		return;
+	}
+
+	const excludedSet = new Set( state.excludedIndexes );
+	const entries = state.items
+		.map( ( label, index ) => ( {
+			index,
+			label,
+			time: state.speakingTimes[ index ] || 0
+		} ) )
+		.filter( entry => !excludedSet.has( entry.index ) && entry.time > 0 )
+		.sort( ( a, b ) => b.time - a.time );
+
+	elements.meetingSummaryEl.hidden = false;
+	elements.meetingSummaryListEl.replaceChildren();
+
+	if ( !entries.length ) {
+		const emptyEl = document.createElement( 'li' );
+		emptyEl.className = 'meeting-summary-row is-empty';
+		emptyEl.textContent = 'No speaking time recorded.';
+		elements.meetingSummaryListEl.append( emptyEl );
+		return;
+	}
+
+	const maxTime = entries[ 0 ].time;
+
+	entries.forEach( ( entry, position ) => {
+		const row = document.createElement( 'li' );
+		row.className = 'meeting-summary-row';
+
+		const name = document.createElement( 'span' );
+		name.className = 'meeting-summary-name';
+		const rank = document.createElement( 'span' );
+		rank.className = 'meeting-summary-rank';
+		rank.textContent = `${ position + 1 }.`;
+		name.append( rank, document.createTextNode( entry.label ) );
+
+		const bar = document.createElement( 'span' );
+		bar.className = 'meeting-summary-bar';
+		const fill = document.createElement( 'span' );
+		fill.className = 'meeting-summary-bar-fill';
+		fill.style.width = `${ ( entry.time / maxTime ) * 100 }%`;
+		fill.style.setProperty( '--pill-color', COLORS[ entry.index % COLORS.length ] );
+		bar.append( fill );
+
+		const time = document.createElement( 'span' );
+		time.className = 'meeting-summary-time';
+		time.textContent = formatDuration( entry.time );
+
+		row.append( name, bar, time );
+		elements.meetingSummaryListEl.append( row );
+	} );
+}
+
+function updateMeetingButtons() {
+	const hasClearableState = state.hasMeetingSummary ||
+		state.talkedIndexes.length > 0 ||
+		Object.keys( state.speakingTimes ).length > 0;
+
+	elements.stopMeetingBtn.hidden = !state.isMeetingActive;
+	elements.startMeetingBtn.hidden = state.isMeetingActive;
+	elements.startMeetingBtn.disabled = state.lastSelectedIndex === null ||
+		state.excludedIndexes.includes( state.lastSelectedIndex );
+	elements.newRoundBtn.hidden = state.isMeetingActive || !hasClearableState;
+}
+
+function startTimerTicker() {
+	if ( timerTickInterval !== null ) {
+		return;
+	}
+
+	timerTickInterval = window.setInterval( () => {
+		if ( !state.isMeetingActive ) {
+			stopTimerTicker();
+			return;
+		}
+
+		renderRoster();
+		renderMeetingStatus();
+	}, TIMER_TICK_INTERVAL );
+}
+
+function stopTimerTicker() {
+	if ( timerTickInterval === null ) {
+		return;
+	}
+
+	window.clearInterval( timerTickInterval );
+	timerTickInterval = null;
+}
+
+function flushActiveSpeaker( now = Date.now() ) {
+	if ( state.activeSpeakerIndex === null || state.speakerStartedAt === null ) {
+		return;
+	}
+
+	const elapsed = Math.max( 0, now - state.speakerStartedAt );
+	const previousIndex = state.activeSpeakerIndex;
+	const previous = state.speakingTimes[ previousIndex ] || 0;
+
+	state.speakingTimes = { ...state.speakingTimes, [ previousIndex ]: previous + elapsed };
+	state.speakerStartedAt = null;
+}
+
+function setActiveSpeaker( index ) {
+	if ( typeof state.items[ index ] === 'undefined' ) {
+		return;
+	}
+
+	if ( state.excludedIndexes.includes( index ) ) {
+		return;
+	}
+
+	const now = Date.now();
+	flushActiveSpeaker( now );
+
+	const wasActive = state.isMeetingActive;
+	state.isMeetingActive = true;
+	state.hasMeetingSummary = false;
+	state.activeSpeakerIndex = index;
+	state.speakerStartedAt = now;
+
+	if ( !state.talkedIndexes.includes( index ) ) {
+		state.talkedIndexes = [ ...state.talkedIndexes, index ];
+	}
+
+	if ( !wasActive ) {
+		startTimerTicker();
+	}
+
+	renderRoster();
+	renderMeetingStatus();
+	renderMeetingSummary();
+	updateMeetingButtons();
+	updateCounter();
+}
+
+function startMeeting() {
+	if ( state.isMeetingActive ) {
+		return;
+	}
+
+	if ( state.lastSelectedIndex === null || state.excludedIndexes.includes( state.lastSelectedIndex ) ) {
+		showToast( 'Spin the wheel to pick a speaker first.' );
+		return;
+	}
+
+	if ( state.hasMeetingSummary || Object.keys( state.speakingTimes ).length ) {
+		state.speakingTimes = {};
+		state.hasMeetingSummary = false;
+		state.talkedIndexes = [];
+	}
+
+	setActiveSpeaker( state.lastSelectedIndex );
+}
+
+function stopMeeting() {
+	if ( !state.isMeetingActive && !Object.keys( state.speakingTimes ).length ) {
+		return;
+	}
+
+	flushActiveSpeaker();
+	state.isMeetingActive = false;
+	state.activeSpeakerIndex = null;
+	state.speakerStartedAt = null;
+	state.hasMeetingSummary = true;
+	stopTimerTicker();
+
+	renderRoster();
+	renderMeetingStatus();
+	renderMeetingSummary();
+	updateMeetingButtons();
+}
+
+function resetMeetingState() {
+	stopTimerTicker();
+	state.isMeetingActive = false;
+	state.activeSpeakerIndex = null;
+	state.speakerStartedAt = null;
+	state.speakingTimes = {};
+	state.hasMeetingSummary = false;
+	state.lastSelectedIndex = null;
 }
 
 function stopWinnerBlink( { redraw = false } = {} ) {
@@ -281,20 +551,52 @@ function restorePersistedState() {
 		.filter( index => index >= 0 && index < state.items.length );
 	state.talkedIndexes = state.talkedIndexes
 		.filter( index => index >= 0 && index < state.items.length );
+
+	const validSpeakingTimes = {};
+	for ( const [ key, value ] of Object.entries( state.speakingTimes ) ) {
+		const idx = Number( key );
+
+		if ( Number.isInteger( idx ) && idx >= 0 && idx < state.items.length ) {
+			validSpeakingTimes[ idx ] = value;
+		}
+	}
+	state.speakingTimes = validSpeakingTimes;
+
+	if (
+		state.activeSpeakerIndex !== null &&
+		( state.activeSpeakerIndex >= state.items.length || state.excludedIndexes.includes( state.activeSpeakerIndex ) )
+	) {
+		flushActiveSpeaker();
+		state.activeSpeakerIndex = null;
+		state.speakerStartedAt = null;
+		state.isMeetingActive = false;
+		stopTimerTicker();
+	}
 }
 
 function updateWheel( { restoreState = true } = {} ) {
 	state.items = getItems();
 	syncItemsInUrl( state.items, { defaultItems: DEFAULT_ITEMS } );
 
+	const itemsKey = state.items.join( '\n' );
+	const itemsChanged = lastItemsKey !== null && lastItemsKey !== itemsKey;
+
 	if ( restoreState ) {
 		restorePersistedState();
+
+		if ( itemsChanged ) {
+			state.talkedIndexes = [];
+			resetMeetingState();
+		}
 	} else {
 		state.rotation = 0;
 		state.recentWinnerIndexes = [];
 		state.excludedIndexes = [];
 		state.talkedIndexes = [];
+		resetMeetingState();
 	}
+
+	lastItemsKey = itemsKey;
 
 	stopWinnerBlink();
 	state.activeWinnerIndex = null;
@@ -341,6 +643,18 @@ const spinner = createSpinner( {
 	onWinnerSelected: winner => {
 		showToast( `${ TEXT.selectedPrefix }${ winner }` );
 		startWinnerBlink();
+
+		if ( state.activeWinnerIndex === null ) {
+			return;
+		}
+
+		state.lastSelectedIndex = state.activeWinnerIndex;
+
+		if ( state.isMeetingActive ) {
+			setActiveSpeaker( state.activeWinnerIndex );
+		} else {
+			updateMeetingButtons();
+		}
 	},
 	persistState: persistWheelState
 } );
@@ -375,16 +689,23 @@ function toggleTalkedIndex( index ) {
 	}
 
 	renderRoster();
+	updateMeetingButtons();
 	updateCounter();
 }
 
 function startNewRound() {
-	if ( !state.talkedIndexes.length ) {
+	const hasTimes = Object.keys( state.speakingTimes ).length > 0 || state.activeSpeakerIndex !== null;
+
+	if ( !state.talkedIndexes.length && !hasTimes && !state.hasMeetingSummary ) {
 		return;
 	}
 
+	resetMeetingState();
 	state.talkedIndexes = [];
 	renderRoster();
+	renderMeetingStatus();
+	renderMeetingSummary();
+	updateMeetingButtons();
 	updateCounter();
 	showToast( 'New round — turn marks cleared.' );
 }
@@ -415,6 +736,15 @@ function handleRosterClick( event ) {
 
 	if ( state.excludedIndexes.includes( index ) ) {
 		toggleExcludedIndex( index );
+		return;
+	}
+
+	if ( state.isMeetingActive ) {
+		if ( index === state.activeSpeakerIndex ) {
+			return;
+		}
+
+		setActiveSpeaker( index );
 		return;
 	}
 
@@ -535,6 +865,7 @@ function handleHashChange() {
 	clearScheduledWheelUpdate();
 	spinner.stop();
 	state.talkedIndexes = [];
+	resetMeetingState();
 	applyItemsFromHash();
 	updateWheel();
 }
@@ -558,6 +889,8 @@ elements.resetBtn.addEventListener( 'click', resetWheel );
 elements.soundBtn.addEventListener( 'click', toggleSound );
 elements.themeBtn.addEventListener( 'click', toggleTheme );
 elements.newRoundBtn.addEventListener( 'click', startNewRound );
+elements.startMeetingBtn.addEventListener( 'click', startMeeting );
+elements.stopMeetingBtn.addEventListener( 'click', stopMeeting );
 elements.itemsTabBtn.addEventListener( 'click', () => setActiveTab( 'items' ) );
 elements.rosterTabBtn.addEventListener( 'click', () => setActiveTab( 'roster' ) );
 elements.itemsTabBtn.addEventListener( 'keydown', handleTabKeydown );

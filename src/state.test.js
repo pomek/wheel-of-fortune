@@ -13,7 +13,13 @@ describe( 'state', () => {
 			activeWinnerIndex: null,
 			isWinnerHighlightVisible: true,
 			lastPointerIndex: null,
-			recentWinnerIndexes: []
+			recentWinnerIndexes: [],
+			speakingTimes: {},
+			activeSpeakerIndex: null,
+			speakerStartedAt: null,
+			isMeetingActive: false,
+			hasMeetingSummary: false,
+			lastSelectedIndex: null
 		} );
 	} );
 
