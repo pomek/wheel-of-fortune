@@ -28,6 +28,7 @@ export function getElements() {
 	const rosterEl = getRequiredElement( 'roster', HTMLElement );
 	const meetingStatusEl = getRequiredElement( 'meetingStatus', HTMLElement );
 	const meetingSummaryEl = getRequiredElement( 'meetingSummary', HTMLElement );
+	const meetingSummaryTotalEl = getRequiredElement( 'meetingSummaryTotal', HTMLElement );
 	const meetingSummaryListEl = getRequiredElement( 'meetingSummaryList', HTMLElement );
 	const counterEl = getRequiredElement( 'counter', HTMLElement );
 	const resultEl = getRequiredElement( 'result', HTMLElement );
@@ -55,6 +56,7 @@ export function getElements() {
 		rosterEl,
 		meetingStatusEl,
 		meetingSummaryEl,
+		meetingSummaryTotalEl,
 		meetingSummaryListEl,
 		counterEl,
 		resultEl,

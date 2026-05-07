@@ -387,16 +387,23 @@ button:disabled {
 
 .meeting-summary-bar {
     flex: 1 1 auto;
-    background: var(--panel);
+    background: var(--border);
     border-radius: 999px;
     height: 8px;
     overflow: hidden;
 }
 
 .meeting-summary-bar-fill {
+    display: block;
     height: 100%;
     background: var(--pill-color, var(--accent));
     border-radius: 999px;
+}
+
+.meeting-summary-total {
+    margin: -4px 0 12px;
+    color: var(--muted);
+    font-size: 13px;
 }
 
 .meeting-summary-time {
@@ -404,7 +411,7 @@ button:disabled {
     font-variant-numeric: tabular-nums;
     color: var(--text);
     font-weight: 600;
-    min-width: 48px;
+    min-width: 84px;
     text-align: right;
 }
 

@@ -314,6 +314,7 @@ function renderMeetingSummary() {
 	if ( !state.hasMeetingSummary ) {
 		elements.meetingSummaryEl.hidden = true;
 		elements.meetingSummaryListEl.replaceChildren();
+		elements.meetingSummaryTotalEl.textContent = '';
 		return;
 	}
 
@@ -331,6 +332,7 @@ function renderMeetingSummary() {
 	elements.meetingSummaryListEl.replaceChildren();
 
 	if ( !entries.length ) {
+		elements.meetingSummaryTotalEl.textContent = '';
 		const emptyEl = document.createElement( 'li' );
 		emptyEl.className = 'meeting-summary-row is-empty';
 		emptyEl.textContent = 'No speaking time recorded.';
@@ -338,9 +340,13 @@ function renderMeetingSummary() {
 		return;
 	}
 
-	const maxTime = entries[ 0 ].time;
+	const totalTime = entries.reduce( ( sum, entry ) => sum + entry.time, 0 );
+
+	elements.meetingSummaryTotalEl.textContent = `Total speaking time ${ formatDuration( totalTime ) } · share of total below`;
 
 	entries.forEach( ( entry, position ) => {
+		const share = totalTime > 0 ? entry.time / totalTime : 0;
+		const sharePercent = Math.round( share * 100 );
 		const row = document.createElement( 'li' );
 		row.className = 'meeting-summary-row';
 
@@ -351,17 +357,23 @@ function renderMeetingSummary() {
 		rank.textContent = `${ position + 1 }.`;
 		name.append( rank, document.createTextNode( entry.label ) );
 
-		const bar = document.createElement( 'span' );
+		const bar = document.createElement( 'div' );
 		bar.className = 'meeting-summary-bar';
-		const fill = document.createElement( 'span' );
+		bar.setAttribute( 'role', 'progressbar' );
+		bar.setAttribute( 'aria-valuenow', String( sharePercent ) );
+		bar.setAttribute( 'aria-valuemin', '0' );
+		bar.setAttribute( 'aria-valuemax', '100' );
+		bar.setAttribute( 'aria-label', `${ entry.label } spoke for ${ sharePercent }% of the meeting` );
+
+		const fill = document.createElement( 'div' );
 		fill.className = 'meeting-summary-bar-fill';
-		fill.style.width = `${ ( entry.time / maxTime ) * 100 }%`;
+		fill.style.width = `${ share * 100 }%`;
 		fill.style.setProperty( '--pill-color', COLORS[ entry.index % COLORS.length ] );
 		bar.append( fill );
 
 		const time = document.createElement( 'span' );
 		time.className = 'meeting-summary-time';
-		time.textContent = formatDuration( entry.time );
+		time.textContent = `${ formatDuration( entry.time ) } · ${ sharePercent }%`;
 
 		row.append( name, bar, time );
 		elements.meetingSummaryListEl.append( row );

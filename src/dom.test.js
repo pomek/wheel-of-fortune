@@ -23,7 +23,7 @@ describe( 'dom', () => {
             <button id="startMeetingBtn"></button>
             <button id="stopMeetingBtn"></button>
             <div id="meetingStatus"></div>
-            <div id="meetingSummary"><ol id="meetingSummaryList"></ol></div>
+            <div id="meetingSummary"><p id="meetingSummaryTotal"></p><ol id="meetingSummaryList"></ol></div>
             <ul id="roster"></ul>
             <div id="counter"></div>
             <div id="result"></div>
@@ -54,6 +54,7 @@ describe( 'dom', () => {
 		expect( elements.stopMeetingBtn.id ).toBe( 'stopMeetingBtn' );
 		expect( elements.meetingStatusEl.id ).toBe( 'meetingStatus' );
 		expect( elements.meetingSummaryEl.id ).toBe( 'meetingSummary' );
+		expect( elements.meetingSummaryTotalEl.id ).toBe( 'meetingSummaryTotal' );
 		expect( elements.meetingSummaryListEl.id ).toBe( 'meetingSummaryList' );
 		expect( elements.itemsTabBtn.id ).toBe( 'itemsTabBtn' );
 		expect( elements.rosterTabBtn.id ).toBe( 'rosterTabBtn' );

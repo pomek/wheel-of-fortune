@@ -500,6 +500,43 @@ test( 'editing the items list clears talked marks and meeting state', async ( { 
 	await expect( page.getByRole( 'button', { name: 'New round' } ) ).toBeHidden();
 } );
 
+test( 'meeting summary renders share-of-total progress bars with non-zero width', async ( { page } ) => {
+	await page.getByRole( 'tab', { name: 'Items' } ).click();
+	await page.getByRole( 'button', { name: 'Spin' } ).click();
+	await expect( page.locator( '#result' ) ).toContainText( 'Selected:' );
+
+	await page.getByRole( 'tab', { name: 'Roster' } ).click();
+	await page.getByRole( 'button', { name: 'Start meeting' } ).click();
+	await page.waitForTimeout( 1100 );
+
+	const otherPill = page.locator( '.roster-pill:not(.is-active)' ).first();
+
+	await otherPill.click();
+	await page.waitForTimeout( 800 );
+
+	await page.getByRole( 'button', { name: 'Stop meeting' } ).click();
+
+	const summary = page.locator( '#meetingSummary' );
+
+	await expect( summary ).toBeVisible();
+	await expect( summary.locator( '.meeting-summary-total' ) ).toContainText( 'Total speaking time' );
+
+	const fills = summary.locator( '.meeting-summary-bar-fill' );
+
+	await expect( fills ).toHaveCount( 2 );
+
+	const topFillStyle = await fills.first().getAttribute( 'style' );
+
+	expect( topFillStyle ).toContain( '--pill-color' );
+	expect( topFillStyle ).toMatch( /width:\s*[\d.]+%/ );
+
+	const topFillBox = await fills.first().boundingBox();
+
+	expect( topFillBox?.width ?? 0 ).toBeGreaterThan( 0 );
+
+	await expect( summary.locator( '.meeting-summary-row' ).first() ).toContainText( '%' );
+} );
+
 test( 'New round button is only visible when there is roster state to clear', async ( { page } ) => {
 	await page.getByRole( 'tab', { name: 'Roster' } ).click();
 
