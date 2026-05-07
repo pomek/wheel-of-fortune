@@ -434,3 +434,29 @@ test( 'reset restores the default items and clears the result', async ( { page }
 	await expect( page.locator( '#result' ) ).toHaveText( '' );
 	await expect.poll( () => new URL( page.url() ).hash ).toBe( '' );
 } );
+
+test( 'meeting timer requires a wheel selection before Start enables', async ( { page } ) => {
+	await page.getByRole( 'tab', { name: 'Roster' } ).click();
+
+	const startBtn = page.getByRole( 'button', { name: 'Start meeting' } );
+
+	await expect( startBtn ).toBeVisible();
+	await expect( startBtn ).toBeDisabled();
+	await expect( page.locator( '#meetingStatus' ) ).toBeHidden();
+
+	await page.getByRole( 'tab', { name: 'Items' } ).click();
+	await page.getByRole( 'button', { name: 'Spin' } ).click();
+	await expect( page.locator( '#result' ) ).toContainText( 'Selected:' );
+
+	await page.getByRole( 'tab', { name: 'Roster' } ).click();
+	await expect( startBtn ).toBeEnabled();
+	await expect( page.locator( '#meetingStatus' ) ).toBeHidden();
+	await expect( page.locator( '.roster-pill.is-active' ) ).toHaveCount( 0 );
+
+	await startBtn.click();
+
+	await expect( page.locator( '#meetingStatus' ) ).toBeVisible();
+	await expect( page.locator( '#meetingStatus' ) ).toContainText( 'Speaking:' );
+	await expect( page.locator( '.roster-pill.is-active' ) ).toHaveCount( 1 );
+	await expect( page.getByRole( 'button', { name: 'Stop meeting' } ) ).toBeVisible();
+} );
