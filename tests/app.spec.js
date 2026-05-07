@@ -460,3 +460,24 @@ test( 'meeting timer requires a wheel selection before Start enables', async ( {
 	await expect( page.locator( '.roster-pill.is-active' ) ).toHaveCount( 1 );
 	await expect( page.getByRole( 'button', { name: 'Stop meeting' } ) ).toBeVisible();
 } );
+
+test( 'meeting status panel stays hidden until a meeting starts', async ( { page } ) => {
+	const meetingStatus = page.locator( '#meetingStatus' );
+
+	await page.getByRole( 'tab', { name: 'Roster' } ).click();
+	await expect( meetingStatus ).toBeHidden();
+	await expect( meetingStatus ).toHaveAttribute( 'hidden', '' );
+
+	await page.getByRole( 'tab', { name: 'Items' } ).click();
+	await page.getByRole( 'button', { name: 'Spin' } ).click();
+	await expect( page.locator( '#result' ) ).toContainText( 'Selected:' );
+
+	await page.getByRole( 'tab', { name: 'Roster' } ).click();
+	await expect( meetingStatus ).toBeHidden();
+
+	await page.getByRole( 'button', { name: 'Start meeting' } ).click();
+	await expect( meetingStatus ).toBeVisible();
+
+	await page.getByRole( 'button', { name: 'Stop meeting' } ).click();
+	await expect( meetingStatus ).toBeHidden();
+} );
