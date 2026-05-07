@@ -1,3 +1,5 @@
+import { paletteForCount } from './colors.js';
+
 const FULL_CIRCLE = Math.PI * 2;
 const HUB_RADIUS = 36;
 const WHEEL_PADDING = 10;
@@ -34,6 +36,7 @@ export function createWheelRenderer( { canvas, ctx, colors, emptyText } ) {
 		}
 
 		const arc = ( Math.PI * 2 ) / list.length;
+		const segmentColors = paletteForCount( list.length, colors );
 
 		for ( let i = 0; i < list.length; i += 1 ) {
 			const start = currentRotation + i * arc;
@@ -44,7 +47,7 @@ export function createWheelRenderer( { canvas, ctx, colors, emptyText } ) {
 			ctx.moveTo( center, center );
 			ctx.arc( center, center, radius, start, end );
 			ctx.closePath();
-			ctx.fillStyle = colors[ i % colors.length ];
+			ctx.fillStyle = segmentColors[ i ];
 			ctx.fill();
 
 			if ( isExcluded ) {

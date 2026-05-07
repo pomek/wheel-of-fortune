@@ -1,6 +1,7 @@
 import './styles.css';
 
 import { createAudioPlayer } from './audio.js';
+import { paletteForCount } from './colors.js';
 import {
 	COLORS,
 	DEFAULT_ITEMS,
@@ -230,6 +231,8 @@ function renderRoster() {
 		return;
 	}
 
+	const pillColors = paletteForCount( state.items.length, COLORS );
+
 	state.items.forEach( ( label, index ) => {
 		const isExcluded = excludedSet.has( index );
 		const isActiveSpeaker = !isExcluded && state.activeSpeakerIndex === index;
@@ -242,7 +245,7 @@ function renderRoster() {
 		button.type = 'button';
 		button.className = 'roster-pill';
 		button.dataset.index = String( index );
-		button.style.setProperty( '--pill-color', COLORS[ index % COLORS.length ] );
+		button.style.setProperty( '--pill-color', pillColors[ index ] );
 
 		if ( isExcluded ) {
 			button.classList.add( 'is-absent' );
@@ -341,6 +344,7 @@ function renderMeetingSummary() {
 	}
 
 	const totalTime = entries.reduce( ( sum, entry ) => sum + entry.time, 0 );
+	const summaryColors = paletteForCount( state.items.length, COLORS );
 
 	elements.meetingSummaryTotalEl.textContent = `Total speaking time ${ formatDuration( totalTime ) } · share of total below`;
 
@@ -368,7 +372,7 @@ function renderMeetingSummary() {
 		const fill = document.createElement( 'div' );
 		fill.className = 'meeting-summary-bar-fill';
 		fill.style.width = `${ share * 100 }%`;
-		fill.style.setProperty( '--pill-color', COLORS[ entry.index % COLORS.length ] );
+		fill.style.setProperty( '--pill-color', summaryColors[ entry.index ] );
 		bar.append( fill );
 
 		const time = document.createElement( 'span' );
