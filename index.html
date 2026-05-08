@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Wheel of Fortune</title>
+    <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+  <script type="module" crossorigin src="./assets/index-CTAGgL4P.js"></script>
+  <link rel="stylesheet" crossorigin href="./assets/index-n7Adspe5.css">
+</head>
+<body>
+<div class="app">
+    <section class="panel">
+        <h1>Wheel of Fortune</h1>
+
+        <div class="tabs" role="tablist" aria-label="Wheel side panel">
+            <button id="itemsTabBtn" class="tab" role="tab" aria-selected="true" aria-controls="itemsTab" type="button">Items</button>
+            <button id="rosterTabBtn" class="tab" role="tab" aria-selected="false" aria-controls="rosterTab" tabindex="-1" type="button">Roster</button>
+        </div>
+
+        <div id="itemsTab" class="tab-panel" role="tabpanel" aria-labelledby="itemsTabBtn">
+            <div class="sub" id="itemsHelp">
+                Enter items one per line. Click segments to exclude or restore them, keep at least 2 active items, and press Space to spin when the textarea is not focused.
+            </div>
+
+            <label for="items">Wheel items</label>
+            <textarea id="items" aria-describedby="itemsHelp">Pizza
+Burger
+Sushi
+Taco
+Kebab
+Ramen</textarea>
+
+            <div class="buttons">
+                <button id="resetBtn" class="danger">Reset</button>
+                <button id="soundBtn" class="secondary icon-btn" aria-label="Mute sounds" aria-pressed="false" title="Mute sounds">🔊</button>
+                <button id="themeBtn" class="secondary icon-btn" aria-label="Switch to light theme" aria-pressed="false" title="Switch to light theme">🌙</button>
+                <button id="spinBtn" class="primary">Spin</button>
+            </div>
+        </div>
+
+        <div id="rosterTab" class="tab-panel" role="tabpanel" aria-labelledby="rosterTabBtn" hidden>
+            <div class="sub">
+                Click <strong>Start meeting</strong> to begin timing — the last spin winner starts, or whoever the wheel currently points at if no one has spun yet. Click any name during a meeting to switch the active speaker. Greyed-out names are excluded.
+            </div>
+            <div id="meetingStatus" class="meeting-status" aria-live="polite" hidden></div>
+            <ul id="roster" class="roster" aria-live="polite"></ul>
+            <div id="meetingSummary" class="meeting-summary" hidden>
+                <h2 class="meeting-summary-title">Meeting summary</h2>
+                <p id="meetingSummaryTotal" class="meeting-summary-total"></p>
+                <ol id="meetingSummaryList" class="meeting-summary-list"></ol>
+            </div>
+            <div class="buttons">
+                <button id="startMeetingBtn" class="primary" type="button" disabled>Start meeting</button>
+                <button id="stopMeetingBtn" class="primary" type="button" hidden>Stop meeting</button>
+                <button id="newRoundBtn" class="secondary" type="button" hidden>New round</button>
+            </div>
+        </div>
+    </section>
+
+    <section class="panel wheel-wrap">
+        <div id="counter" class="counter" aria-live="polite"></div>
+        <div class="wheel-box">
+            <canvas id="wheel" width="520" height="520" role="img" aria-label="Wheel of Fortune segments"></canvas>
+            <div class="pointer" aria-hidden="true"></div>
+        </div>
+        <div id="result" class="result" role="status" aria-live="polite" aria-atomic="true"></div>
+        <div class="hint">
+            Focusing the textarea stops the current spin. The current list is stored in the URL, and excluded segments stay saved locally for that wheel.
+        </div>
+    </section>
+</div>
+
+<div id="toast" class="toast" aria-hidden="true"></div>
+
+</body>
+</html>
