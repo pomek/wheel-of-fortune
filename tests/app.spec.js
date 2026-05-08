@@ -435,20 +435,15 @@ test( 'reset restores the default items and clears the result', async ( { page }
 	await expect.poll( () => new URL( page.url() ).hash ).toBe( '' );
 } );
 
-test( 'meeting timer requires a wheel selection before Start enables', async ( { page } ) => {
-	await page.getByRole( 'tab', { name: 'Roster' } ).click();
-
-	const startBtn = page.getByRole( 'button', { name: 'Start meeting' } );
-
-	await expect( startBtn ).toBeVisible();
-	await expect( startBtn ).toBeDisabled();
-	await expect( page.locator( '#meetingStatus' ) ).toBeHidden();
-
+test( 'meeting timer starts after a spin selection', async ( { page } ) => {
 	await page.getByRole( 'tab', { name: 'Items' } ).click();
 	await page.getByRole( 'button', { name: 'Spin' } ).click();
 	await expect( page.locator( '#result' ) ).toContainText( 'Selected:' );
 
 	await page.getByRole( 'tab', { name: 'Roster' } ).click();
+
+	const startBtn = page.getByRole( 'button', { name: 'Start meeting' } );
+
 	await expect( startBtn ).toBeEnabled();
 	await expect( page.locator( '#meetingStatus' ) ).toBeHidden();
 	await expect( page.locator( '.roster-pill.is-active' ) ).toHaveCount( 0 );
@@ -459,6 +454,22 @@ test( 'meeting timer requires a wheel selection before Start enables', async ( {
 	await expect( page.locator( '#meetingStatus' ) ).toContainText( 'Speaking:' );
 	await expect( page.locator( '.roster-pill.is-active' ) ).toHaveCount( 1 );
 	await expect( page.getByRole( 'button', { name: 'Stop meeting' } ) ).toBeVisible();
+} );
+
+test( 'Start meeting works without spinning, using the segment under the pointer', async ( { page } ) => {
+	await page.getByRole( 'tab', { name: 'Roster' } ).click();
+
+	const startBtn = page.getByRole( 'button', { name: 'Start meeting' } );
+
+	await expect( startBtn ).toBeEnabled();
+	await expect( page.locator( '#result' ) ).toHaveText( '' );
+	await expect( page.locator( '.roster-pill.is-active' ) ).toHaveCount( 0 );
+
+	await startBtn.click();
+
+	await expect( page.locator( '#meetingStatus' ) ).toBeVisible();
+	await expect( page.locator( '#meetingStatus' ) ).toContainText( 'Speaking:' );
+	await expect( page.locator( '.roster-pill.is-active' ) ).toHaveCount( 1 );
 } );
 
 test( 'meeting status panel stays hidden until a meeting starts', async ( { page } ) => {

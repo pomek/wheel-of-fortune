@@ -384,6 +384,20 @@ function renderMeetingSummary() {
 	} );
 }
 
+function getPreferredStartSpeakerIndex() {
+	const excludedSet = new Set( state.excludedIndexes );
+
+	if ( state.lastSelectedIndex !== null && !excludedSet.has( state.lastSelectedIndex ) ) {
+		return state.lastSelectedIndex;
+	}
+
+	if ( state.lastPointerIndex !== null && !excludedSet.has( state.lastPointerIndex ) ) {
+		return state.lastPointerIndex;
+	}
+
+	return null;
+}
+
 function updateMeetingButtons() {
 	const hasClearableState = state.hasMeetingSummary ||
 		state.talkedIndexes.length > 0 ||
@@ -391,8 +405,7 @@ function updateMeetingButtons() {
 
 	elements.stopMeetingBtn.hidden = !state.isMeetingActive;
 	elements.startMeetingBtn.hidden = state.isMeetingActive;
-	elements.startMeetingBtn.disabled = state.lastSelectedIndex === null ||
-		state.excludedIndexes.includes( state.lastSelectedIndex );
+	elements.startMeetingBtn.disabled = getPreferredStartSpeakerIndex() === null;
 	elements.newRoundBtn.hidden = state.isMeetingActive || !hasClearableState;
 }
 
@@ -472,8 +485,10 @@ function startMeeting() {
 		return;
 	}
 
-	if ( state.lastSelectedIndex === null || state.excludedIndexes.includes( state.lastSelectedIndex ) ) {
-		showToast( 'Spin the wheel to pick a speaker first.' );
+	const speakerIndex = getPreferredStartSpeakerIndex();
+
+	if ( speakerIndex === null ) {
+		showToast( 'Pick a speaker first.' );
 		return;
 	}
 
@@ -483,7 +498,7 @@ function startMeeting() {
 		state.talkedIndexes = [];
 	}
 
-	setActiveSpeaker( state.lastSelectedIndex );
+	setActiveSpeaker( speakerIndex );
 }
 
 function stopMeeting() {
